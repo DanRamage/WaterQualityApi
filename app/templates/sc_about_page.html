@@ -1,0 +1,42 @@
+{% extends "about_page.html" %}
+
+{%  block site_specific_info_card %}
+
+  <div class="card">
+  <div class="card-header text-left" id="swim_data">
+    <h5 class="mb-0">
+      <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#swim_data_collapse" aria-expanded="false" aria-controls="swim_data_collapse">
+        <i class="fa" aria-hidden="true"></i>
+        Swim Advisory Data
+      </button>
+    </h5>
+  </div>
+  <div id="swim_data_collapse" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+    <div class="card-body card-info-background">
+
+      <h3>&nbsp;Swim Advisory Data</h3>
+      <p><h3>South Carolina Department of Health and Environmental Control Sampling Program </h3>
+        South Carolina Department of Health and Environmental Control <a href="http://www.scdhec.gov/HomeAndEnvironment/Pollution/DHECPollutionMonitoringServices/BeachMonitoring/" target="_blank">program page</a>
+      </p>
+      <h3>Swimming Advisories</h3>
+      <p>
+        We routinely collect water samples at more than 120 locations along South Carolina's beaches.
+        If high numbers of bacteria are found, we issue an advisoryfor that portion of the beach.
+        An advisory means that DHEC advises you NOT to swim in those areas.
+        This is especially true for young children, the elderly, and those with compromised immune systems. Advisories do not mean that the beach is closed. Wading, fishing, and shell collecting do not pose a risk. Advisories may be issued due to high bacteria counts or rainfall. Advisories are lifted when sample results fall below the limit of 104CFU/100mL.
+        Look for advisory signs when you go to the beach.
+      </p>
+
+      <h3>Indicators</h3>
+      <p>
+        The South Carolina Department of Health and Environmental Control (SCDHEC) tests water quality at beaches weekly to determine if it is safe for swimming.
+        The icons on the map page are the locations where the sampling is conducted.
+        SCDHEC Tests the water for indicators of recent pollution.
+        The presence of these indicators suggests that harmful bacteria or viruses may also be present. Enterococci bacteria level is the recommended indicator for use in salt water.
+        The date of the last measurement is shown. Generally, bacteria monitoring is conducted once per week.
+      </p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

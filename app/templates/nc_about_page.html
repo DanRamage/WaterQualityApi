@@ -1,0 +1,43 @@
+{% extends "about_page.html" %}
+
+{%  block site_specific_info_card %}
+
+  <div class="card">
+  <div class="card-header text-left" id="swim_data">
+    <h5 class="mb-0">
+      <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#swim_data_collapse" aria-expanded="false" aria-controls="swim_data_collapse">
+        <i class="fa" aria-hidden="true"></i>
+        Swim Advisory Data
+      </button>
+    </h5>
+  </div>
+  <div id="swim_data_collapse" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+    <div class="card-body card-info-background">
+
+      <h3>&nbsp;Swim Advisory Data</h3>
+      <p><h3>N.C. Recreational Water Quality Program </h3>
+      N.C. Recreational Water Quality Program <a href="http://portal.ncdenr.org/web/mf/recreational-water-quality" target="_blank"><ul>program page</ul></a>
+      </p>
+      <h3>Swimming Advisories</h3>
+      <p>
+        The N.C. Recreational Water Quality Program began testing coastal waters in 1997. Our mission is to protect the
+        public health by monitoring the quality of N.C.'s coastal recreational waters and notifying the public when
+        bacteriological standards for safe bodily contact are exceeded. The coastal waters monitored include the ocean
+        beaches, sounds, bays and estuarine rivers.
+      </p>
+      <p>
+        We test for enterococcus bacteria, an indicator organism found in the intestines of warm-blooded animals. While it will not cause illness itself, its presence is correlated with that of organisms that can cause illness.
+      </p>
+      <p>
+        The program tests 204 swimming sites, most of them on a weekly basis during the swimming season, which runs from
+        April through September. All ocean beaches and high-use sound-side beaches are tested weekly from April though
+        September; lower-use beaches are tested twice a month. All sites are tested twice a month in October and monthly
+        from November through March. Water quality sampling results for all locations are posted on this site along with
+        information about archived swimming advisories. In most cases swimming advisories will not be issued during the
+        non-swimming season from Nov. 1 to March 31.
+      </p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

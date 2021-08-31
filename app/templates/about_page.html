@@ -1,0 +1,180 @@
+{% extends "about_page_base.html" %}
+{% block head %}
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>How's the Beach</title>
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap/bootstrap-4.1.3-dist/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/fontawesome/css/all.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/intro_page.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/cover.css') }}">
+
+    <script src="{{ url_for('static', filename='js/jquery-1.10.2.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='css/bootstrap/bootstrap-4.1.3-dist/js/bootstrap.min.js') }}"></script>
+
+
+    <style>
+      body {
+        background: url("{{ url_for('static', filename='images/Flickr_Allison_M.jpg') }}") no-repeat center center fixed;
+        font-family: "Helvetica Neue"
+
+      }
+      .card {
+        background-color: rgba(245, 245, 245, .4);
+        #opacity: 0.9;
+
+      }
+      .card-info-background {
+        background-color: #2F71AA;
+        #opacity: 0.9;
+      }
+     [data-toggle="collapse"] .fa:before {
+        content: "\f139";
+      }
+
+      [data-toggle="collapse"].collapsed .fa:before {
+        content: "\f13a";
+      }
+      .back-button {
+        font-size: 2.0em;
+        color: #2F71AA;
+      }
+    </style>
+{% endblock %}
+
+{% block body %}
+  <div class="container">
+    <div class="row">
+      <div class="col-2 mt-4 align-items-left">
+        <a class="btn" href="/{{ site_name }}">
+          <i class="fas fa-chevron-circle-left back-button"></i>
+        </a>
+      </div>
+      <div class="col-10 mt-4">
+        <h2>How's the Beach FAQ</h2>
+      </div>
+    </div>
+
+    <div id="accordion">
+      <div class="card">
+        <div class="card-header text-left" id="headingOne">
+          <h5 class="mb-0">
+            <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+              <i class="fa" aria-hidden="true"></i>
+              About
+            </button>
+          </h5>
+        </div>
+
+        <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+          <div class="card-body card-info-background">
+
+            <div class="row text-left">
+              <div class="col">
+                <p class="lead">
+                  What is How's The Beach?
+                </p>
+                <p>
+                  How's the Beach is a joint initiative of University of South Carolina, Southeast Coastal Ocean Observing Regional Association, and the Integration and Application Network at the University of Maryland Center for Environmental Science.
+                </p>
+              </div>
+            </div>
+            <div class="row text-left">
+              <div class="col">
+                <p class="lead">
+                  What are we forecasting?
+                </p>
+                <p>
+                  Enterococci
+                </p>
+              </div>
+            </div>
+            <div class="row text-left">
+              <div class="col">
+                <p class="lead">
+                  What is Enterococci?
+                </p>
+                <p>
+                  Enterococci are bacteria that normally inhabit the intestinal tract of humans and animals. The presence of these bacteria can be an indication of fecal pollution, which may come from stormwater runoff, pets and wildlife, and human sewage. If they are present in high concentrations in recreational waters, it is more likely that pathogens that cause disease, infections or rashes may also be present. These pathogens can cause harm if they are ingested while swimming or enter the skin through a cut or sore.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header text-left" id="headingTwo">
+          <h5 class="mb-0">
+            <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+              <i class="fa" aria-hidden="true"></i>
+              Forecast
+            </button>
+          </h5>
+        </div>
+        <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+          <div class="card-body card-info-background">
+            <div class="row text-left">
+              <div class="col">
+                <p class="lead">What is the forecast?</p>
+                <p>Bacteria levels can change very rapidly between sampling dates. To fill in the gaps, we make daily predictions of bacteria conditions. <strong>These predictions do not represent swimming advisories</strong>, but provide estimates of the likelihood that bacteria conditions would warrant issuing an advisory if sampling were conducted that day.</p>
+                <p><strong>These forecasts are for informational purposes only</strong></p>
+                <p>The probability that today's bacteria level will exceed the safe swimming standard based on an automated prediction system.</p>
+                <p>
+                    <img src="/static/images/none_marker.png" /> No forecast available<br />
+                    <img src="/static/images/low_marker.png" /> Low<br />
+                    <img src="/static/images/medium_marker.png" /> Medium<br />
+                    <img src="/static/images/high_marker.png" /> High<br />
+                </p>
+                <p class="lead">How is the forecast generated?</p>
+                <p>Predictions are made based on relationships between bacteria level and rainfall, salinity, wind conditions, and water temperature found in previous sampling. These relationships are used to create daily estimates of bacteria level.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      {%  block site_specific_info_card %}
+      {%  endblock %}
+      <div class="card">
+        <div class="card-header text-left" id="headingThree">
+          <h5 class="mb-0">
+            <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+              <i class="fa" aria-hidden="true"></i>
+              Partners
+            </button>
+          </h5>
+        </div>
+        <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+          <div class="card-body card-info-background">
+            <div class="row row-background">
+              <div class="col">
+                <a target="_blank" href="http://secoora.org/">
+                  <img src="{{ url_for('static', filename='images/secoora_logo_white.svg') }}" style="height: 70px;">
+                </a>
+              </div>
+              <div class="col">
+                <a target="_blank" href="http://www.sc.edu/">
+                  <img src="{{ url_for('static', filename='images/usc_log_white.svg') }}"  style="height: 70px;">
+                </a>
+              </div>
+              <div class="col">
+                <a target="_blank" href="http://www.umces.edu/">
+                  <img src="{{ url_for('static', filename='images/ian_umces_logo_white.svg') }}" style="height: 70px;">
+                </a>
+                <!--<img class="logos" src="/images/umces-logo.svg">-->
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+  </div>
+{% endblock %}

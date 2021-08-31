@@ -1,0 +1,114 @@
+{% extends "index_template_base.html" %}
+{% block google_analytics %}
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', ' UA-3652063-4', 'auto', {'name': 'SECOORA'});
+      ga('SECOORA.send', 'pageview');
+    </script>
+{% endblock %}
+
+{% block title %}How's Sarasota/Manatee{% endblock %}
+
+
+{% block site_message_block %}
+  {% if site_message %}
+    <div id="message_area" class="message_area_text">
+      <div id="site_message_text" class="message_text">
+        <p>
+          <h3><bold>{{site_message}}</h3></bold>
+        </p>
+      </div>
+    </div>
+  {% endif %}
+{%  endblock %}
+
+{% block about_content%}
+  <div data-role="collapsible-set" data-inset="false">
+    <div data-role="collapsible" data-collapsed="false">
+      <h3>&nbsp;About</h3>
+      <p>How's the Beach is a joint initiative of University of South Carolina, Southeast Coastal Ocean Observing Regional Association, and the Integration and Application Network at the University of Maryland Center for Environmental Science.</p>
+      <p>
+        <strong>What are we forecasting?</strong>
+      </p>
+      <p>
+        Enterococci</br>
+      </p>
+      <p>
+        <strong>What is Enterococci?</strong>
+      </p>
+      <p>
+        Enterococci are bacteria that normally inhabit the intestinal tract of humans and animals. The presence of these bacteria can be an indication of fecal pollution, which may come from stormwater runoff, pets and wildlife, and human sewage. If they are present in high concentrations in recreational waters, it is more likely that pathogens that cause disease, infections or rashes may also be present. These pathogens can cause harm if they are  ingested while swimming or enter the skin through a cut or sore.				</p>
+      <p><strong>This product is for informational purposes only. Please consult your state and local health departments for official beach advisory information</strong></p>
+
+        <div class="logo_container">
+          <div class="logo_category" style="margin:30px auto"><a href="http://www.sc.edu/" target="_blank"><img src="/static/images/sc_logo.png" alt="SC logo" /></a></div>
+          <div class="logo_category" style="margin:30px auto"><a href="http://secoora.org/" target="_blank"><img src="/static/images/secoora_logo.png" alt="SECOORA logo" /></a></div>
+          <div class="logo_category" style="margin:30px auto"><a href="http://www.umces.edu/" target="_blank"><img src="/static/images/umces_logo.png" alt="UMCES logo" /></a></div>
+        </div>
+    </div>
+
+    <div data-role="collapsible" id="forecast_panel">
+    <h3>&nbsp;Forecast</h3>
+      <h3>What is the forecast?</h3>
+        <p>Bacteria levels can change very rapidly between sampling dates. To fill in the gaps, we make daily predictions of bacteria conditions. <strong>These predictions do not represent swimming advisories</strong>, but provide estimates of the likelihood that bacteria conditions would warrant issuing an advisory if sampling were conducted that day.</p><p><strong>These forecasts are for informational purposes only</strong></p>
+        <p>The probability that today's bacteria level will exceed the safe swimming standard based on an automated prediction system.</p>
+                  <p>
+                      <img src="/static/images/none_marker.png" /> No forecast available<br />
+                      <img src="/static/images/low_marker.png" /> Low<br />
+                      <img src="/static/images/medium_marker.png" /> Medium<br />
+                      <img src="/static/images/high_marker.png" /> High<br />
+                  </p>
+          <h3>How is the forecast generated?</h3>
+           <p>Predictions are made based on relationships between bacteria level and rainfall, salinity, wind conditions, and water temperature found in previous sampling. These relationships are used to create daily estimates of bacteria level.</p>
+    </div>
+
+    <div data-role="collapsible">
+      <h3>&nbsp;Swim Advisory Data</h3>
+      <p><h3>Florida Healthy Beaches Program</h3>
+        Florida Healthy Beaches Program <a href="http://www.floridahealth.gov/environmental-health/beach-water-quality/index.html " target="_blank">program page</a>
+      </p>
+      <h3>Swimming Advisories</h3>
+      <p>
+        Enterococci are enteric bacteria that normally inhabit the intestinal tract of humans and animals. The presence
+        of enteric bacteria can be an indication of fecal pollution, which may come from stormwater runoff, pets and
+        wildlife, and human sewage. If they are present in high concentrations in recreational waters and are ingested
+        while swimming or enter the skin through a cut or sore, they may cause human disease, infections or rashes. The
+        statewide testing program tests for enterococci, which the United States Environmental Protection Agency (EPA)
+        opens in new window has recommended states adopt as a saltwater quality indicator. According to studies
+        conducted by the EPA, enterococci have a greater correlation with swimming-associated gastrointestinal illness
+        in both marine and fresh waters than other bacterial indicator organisms, and are less likely to "die off" in
+        saltwater. If an enterococci result were observed to exceed 70 colony forming units per 100 milliliters of beach
+        water sampled and a resampling result also exceeds this value, then an "Advisory" would be issued for the
+        sampling site. </p>
+
+      <h3>Indicators</h3>
+      <p>
+        In 1998, five of Florida's coastal counties began monitoring for enterococci bacteria under a grant-funded pilot
+        program. By the beginning of 2000, 11 Florida counties were participating in the program, which continued
+        through July 2000. In August 2000, the Beach Water Sampling Program was extended to 34 of Florida's coastal
+        counties through state legislation (Senate Bill 1412 and House Bill 2145) and funding. In addition, sampling
+        under the new program now includes fecal coliform as well as enterococci bacteria. The rationale for selecting
+        these two bacteria for analysis and implications of the sampling results are described below. In August 2002,
+        the beach water sampling program began collecting water samples on a weekly basis with additional funding from
+        U.S. EPA. </p>
+      <p>
+        {% for limit_type, limit_rec in sampling_program_info.advisory_limits.iteritems() %}
+          {% if limit_type != 'No data' %}
+            {% if limit_type != 'High' %}
+              <img src="/static/images/{{ limit_rec.icon }}" /> {{ limit_type }} level ({{ limit_rec.min_limit }}-{{ limit_rec.max_limit }} per 100mL of water)<br />
+            {% else %}
+              <img src="/static/images/{{ limit_rec.icon }}" /> {{ limit_type }} level (>{{ limit_rec.min_limit }} per 100mL of water)<br />
+            {% endif %}
+          {% else %}
+            <img src="/static/images/{{ limit_rec.icon }}" /> No data available in the last 30 days<br />
+          {% endif %}
+        {%  endfor %}
+      </p>
+    </div>
+  </div>
+{% endblock %}
+

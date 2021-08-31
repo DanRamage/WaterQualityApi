@@ -1,0 +1,88 @@
+{% extends "intro_page_base.html" %}
+{% block head %}
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>How's Folly Beach</title>
+
+    <link href="static/css/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/css/styles.css" rel="stylesheet">
+    <link href="static/css/intro_page.css" rel="stylesheet">
+    <link href="static/css/cover.css" rel="stylesheet">
+
+    <style>
+
+      body {
+        background: url("static/images/follybeach-pier.jpg") no-repeat center center fixed;
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+      }
+
+      .text-background{
+          /*display:inline;*/
+          border-radius: 6px;
+          color: #FFFFFF;
+          background-color: rgba(120, 192, 191, 0.9);
+      }
+      .row-background {
+          border-radius: 6px;
+          background-size: 100% 100%;
+        background-color: rgba(120, 192, 191, 0.9);
+      }
+    .check_button {
+          background-color: rgba(120, 192, 191, 0.9);
+    }
+    </style>
+{% endblock %}
+
+{% block body %}
+  <div class="site-wrapper">
+
+    <div class="site-wrapper-inner">
+
+      <div class="cover-container">
+        <div class="inner cover">
+          <div class="row">
+              <h1 class="cover-heading"><span class="text-background">HOW'S FOLLY BEACH?</span></h1>
+              <span class="text-background">
+                <p class="lead text-background">
+                  Headed to the beach? Use this app to see if the water quality is healthy before going in!
+                </p>
+              </span>
+              <p class="lead">
+                <a href="/follybeach" class="btn btn-lg btn-default">Check Folly Beach</a>
+              </p>
+              <p class="lead text-background">
+                Click on a <img class="img-rounded" src="static/images/low_marker.png"  style="width: 40px; height: 40px;"> for site data.
+              </p>
+                <!--
+              <p class="lead text-background">
+                Click <a href="/midlands/news" style="color: #95c940"> here </a> for the latest news.
+              </p>
+              -->
+              <!--
+              <p class="lead text-background">
+                <a href="">
+                  <img class="img-rounded" src="static/images/email_icon.png"  style="width: 30px; height: 30px;">
+                </a>
+                <a href="https://twitter.com/myscriver">
+                  <img class="img-rounded" src="static/images/Twitter_Social_Icon_Rounded_Square_Color.png"  style="width: 30px; height: 30px;">
+                </a>
+                -->
+              </p>
+            </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+{% endblock %}
