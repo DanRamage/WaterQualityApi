@@ -1,7 +1,7 @@
 import os
 
-FLASK_DEBUG = False
-PYCHARM_DEBUG= False
+FLASK_DEBUG = True
+PYCHARM_DEBUG= True
 # Create dummy secrey key so we can use sessions
 SECRET_KEY = '123456790'
 SECRET_KEY_FILE = 'secret_key'
@@ -123,3 +123,10 @@ SITE_TYPE_DATA_VALID_TIMEOUTS= {
   'Shellfish': 24,
   'Rip Current': 4
 }
+
+
+SC_BEACH_MONITORING_TEXT = "South Carolina Department of Health and Evironmental Control routinely collect water samples at more than 120 locations along South Carolina's beaches. If high numbers of bacteria are found, we issue an advisory for that portion of the beach. An advisory means that DHEC advises you NOT to swim in those areas. This is especially true for young children, the elderly, and those with compromised immune systems."
+SC_BEACH_MONITORING_LINK = "https://scdhec.gov/environment/your-water-coast/ocean-coastal-resource-management-ocrm/beach-management/beach-monitoring"
+NC_BEACH_MONITORING_TEXT = "The N.C. Recreational Water Quality Program tests 213 swimming sites, most of them on a weekly basis during the swimming season, which runs from April through September. All ocean beaches and high-use sound-side beaches are tested weekly from April though September; lower-use beaches are tested twice a month. All sites are tested twice a month in October and monthly from November through March. Water quality sampling results for all locations are posted on this site along with information about archived swimming advisories. In most cases swimming advisories will not be issued during the non-swimming season from Nov. 1 to March 31."
+NC_BEACH_MONITORING_LINK = "https://deq.nc.gov/about/divisions/marine-fisheries/shellfish-sanitation-and-recreational-water-quality/recreational-water-quality#about-the-program"
+FL_BEACH_MONITORING_TEXT = ""

@@ -29,7 +29,10 @@ from .wq_models import Project_Area, \
   Sample_Site_Data,\
   Site_Extent,\
   Boundary, \
-  Site_Type
+  Site_Type, \
+  Collection_Program_Info, \
+  Collection_Program_Info_Mapper, \
+  Collection_Program_Type
 
 class SiteGeometry:
   def __init__(self, geom):
@@ -228,6 +231,8 @@ class SitePage(View):
         }
     except Exception as e:
       current_app.logger.exception(e)
+    #Get the program info
+
     current_app.logger.debug('get_program_info finished in %f seconds' % (time.time()-start_time))
     return program_info
 
@@ -643,22 +648,6 @@ class StationDataAPI(MethodView):
       if sitename in SITES_CONFIG:
         results = self.get_requested_station_data(station_name, request, SITES_CONFIG[sitename]['stations_directory'])
         ret_code = 200
-        """
-        if sitename == 'myrtlebeach':
-          ret_code = 200
-
-        elif sitename == 'sarasota':
-          results = self.get_requested_station_data(station_name, request, FL_SARASOTA_STATIONS_DATA_DIR)
-          ret_code = 200
-
-        elif sitename == 'charleston':
-          results = self.get_requested_station_data(station_name, request, SC_CHS_STATIONS_DATA_DIR)
-          ret_code = 200
-
-        elif sitename == 'killdevilhill':
-          results = self.get_requested_station_data(station_name, request, NC_KDH_STATIONS_DATA_DIR)
-          ret_code = 200
-        """
       else:
         results = json.dumps({'status': {'http_code': ret_code},
                       'contents': None
@@ -803,8 +792,8 @@ class CameraDataAPI(MethodView):
 
 # Define login and registration forms (for flask-login)
 class LoginForm(form.Form):
-    login = fields.StringField(validators=[validators.required()])
-    password = fields.PasswordField(validators=[validators.required()])
+    login = fields.StringField(validators=[validators.DataRequired()])
+    password = fields.PasswordField(validators=[validators.DataRequired()])
 
     def validate_login(self, field):
       user = self.get_user()
@@ -1059,6 +1048,16 @@ class site_type_view(base_view):
   column_list = ['name', 'row_entry_date', 'row_update_date']
   form_columns = ['name']
 
+class collection_program_info(base_view):
+  column_list = ['id', 'program', 'url', 'description', 'program_type', 'state', 'state_abbreviation', 'sites', 'row_entry_date', 'row_update_date']
+  form_columns = ['program', 'url', 'description', 'program_type', 'state', 'state_abbreviation', 'sites', 'row_entry_date', 'row_update_date']
+  column_filters = ['program']
+
+class collection_program_type(base_view):
+  column_list = ['id', 'program_type']
+  form_columns = ['program_type']
+  column_filters = ['program_type']
+
 
 class wktTextField(fields.TextAreaField):
   def process_data(self, value):
@@ -1304,6 +1303,36 @@ class SitesDataAPI(MethodView):
       current_app.logger.exception(e)
     return None
 
+  def get_program_information(self, sitename):
+    #Get the program info
+    try:
+      project_info_recs = db.session.query(Project_Info_Page)\
+        .join(Project_Area, Project_Area.id == Project_Info_Page.site_id)\
+        .filter(Project_Area.area_name == sitename)\
+        .all()
+      project_info_recs
+    except Exception as e:
+      current_app.logger.exception(e)
+
+  def add_shellfish_data(self, sitename):
+    shellfish_data = None
+    if 'shellfish_closures' in SITES_CONFIG[sitename]:
+      shellfish_data = self.load_data_file(SITES_CONFIG[sitename]['shellfish_closures'])
+
+    return shellfish_data
+
+  def get_sample_sites(self, sitename):
+    try:
+      sample_sites = db.session.query(Sample_Site) \
+        .join(Project_Area, Project_Area.id == Sample_Site.project_site_id) \
+        .join(Site_Type, Site_Type.id == Sample_Site.site_type_id) \
+        .filter(Project_Area.area_name == sitename).all()
+      return sample_sites
+    except Exception as e:
+      current_app.logger.error("IP: %s error getting samples sites from database." % (request.remote_addr))
+      current_app.logger.exception(e)
+    return None
+
   def get(self, sitename):
     start_time = time.time()
     current_app.logger.debug('IP: %s SiteDataAPI get for site: %s' % (request.remote_addr, sitename))
@@ -1321,23 +1350,22 @@ class SitesDataAPI(MethodView):
         advisory_data = self.load_data_file(SITES_CONFIG[sitename]['advisory_file'])
 
         #Does site have shellfish data?
-        shellfish_data = None
-        if 'shellfish_closures' in SITES_CONFIG[sitename]:
-          shellfish_data = self.load_data_file(SITES_CONFIG[sitename]['shellfish_closures'])
+        shellfish_data = self.add_shellfish_data(sitename)
+
         #Does site have ripcurrents data?
         ripcurrents_data = None
         if 'ripcurrents' in SITES_CONFIG[sitename]:
           ripcurrents_data = self.load_data_file(SITES_CONFIG[sitename]['ripcurrents'])
 
-        sample_sites = db.session.query(Sample_Site) \
-          .join(Project_Area, Project_Area.id == Sample_Site.project_site_id) \
-          .join(Site_Type, Site_Type.id == Sample_Site.site_type_id) \
-          .filter(Project_Area.area_name == sitename).all()
+        sample_sites = self.get_sample_sites(sitename)
 
         limits = self.get_advisory_limits(sitename)
         if limits is not None:
           results['advisory_info']['limits'] = limits
         features = []
+
+        self.get_program_information(sitename)
+
         for ndx,site_rec in enumerate(sample_sites):
           #We set the project info once.
           if ndx == 0:
@@ -1348,7 +1376,7 @@ class SitesDataAPI(MethodView):
           if site_rec.site_type.name is not None:
             site_type = site_rec.site_type.name
           else:
-            site_type = 'Default'
+            site_type = 'Water Quality'
           #All sites will have some base properties.
           properties = {
             'description': site_rec.description,
@@ -1356,7 +1384,7 @@ class SitesDataAPI(MethodView):
             'site_name': site_rec.site_name,
             }
           #Default sites are water quality sites, so we will check the predicition and advisory data and add to our response.
-          if site_type == 'Default':
+          if site_type == 'Water Quality':
             properties[site_type] = {'issues_advisories': site_rec.issues_advisories,
                                       'under_advisory': site_rec.has_current_advisory,
                                       'current_advisory_text': site_rec.advisory_text
@@ -1392,6 +1420,7 @@ class SitesDataAPI(MethodView):
                                                          'hours_data_valid': data_timeout}
                 except Exception as e:
                   current_app.logger.exception(e)
+
           elif site_type == 'Shellfish' and shellfish_data is not None:
             data_timeout = SITE_TYPE_DATA_VALID_TIMEOUTS[site_type]
             property = self.create_shellfish_properties(shellfish_data, site_rec, data_timeout)
@@ -1591,6 +1620,27 @@ class SiteBacteriaDataAPI(MethodView):
     current_app.logger.debug('SiteBacteriaDataAPI get for site: %s finished in %f seconds' % (sitename, time.time() - start_time))
     return (results, ret_code, {'Content-Type': 'application/json'})
 
+class CollectionProgramInfoAPI(MethodView):
+  def get(self, sitename=None):
+    start_time = time.time()
+    current_app.logger.debug('IP: %s WaterQualityProgramAPI get for %s.' % (request.remote_addr, sitename))
+    ret_code = 404
+    results = {}
+    try:
+      program_info = db.session.query(Collection_Program_Info) \
+        .join(Collection_Program_Info_Mapper, Collection_Program_Info_Mapper.collection_program_info_id == Collection_Program_Info.id) \
+        .join(Project_Area, Project_Area.id == Collection_Program_Info_Mapper.project_area_id) \
+        .filter(Project_Area.area_name == sitename)
+      if 'program_type' in request.args:
+        program_type = request.args['program_type']
+        #program_info = program_info.filter(Collection_Program_Info.program_type_id == program_type)
+
+      program_info_recs = program_info.all()
+    except Exception as e:
+      results = build_json_error(501, "Error querying Water Quality Program info.")
+      current_app.logger.exception(e)
+
+    return (results, ret_code, {'Content-Type': 'application/json'})
 
 def build_json_error(error_code, error_message):
   json_error = {}

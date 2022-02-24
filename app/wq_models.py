@@ -56,18 +56,39 @@ class Site_Message(db.Model):
   def __str__(self):
     return self.message
 
+class Collection_Program_Info_Mapper(db.Model):
+  __table_name__ = 'collection_program_info_mapper'
+  collection_program_info_id = db.Column(db.Integer, db.ForeignKey('collection_program_info.id'), primary_key=True)
+  project_area_id = db.Column(db.Integer, db.ForeignKey('project_area.id'), primary_key=True)
 
-class Project_Info_Page(db.Model):
-  __tablename__ = 'project_info_page'
+class Collection_Program_Info(db.Model):
+  __tablename__ = 'collection_program_info'
   id = db.Column(db.Integer, primary_key=True)
   row_entry_date = db.Column(db.String(32))
   row_update_date = db.Column(db.String(32))
-  site_id = db.Column(db.Integer, db.ForeignKey('project_area.id'))
-  sampling_program = db.Column(db.String(128))
+  program = db.Column(db.Text())
+  program_type_id = db.Column(db.Integer, db.ForeignKey('collection_program_type.id'))
+  program_type = db.relationship('Collection_Program_Type', backref='collection_program_info')
+
   url = db.Column(db.String(2048))
   description = db.Column(db.Text())
-  swim_advisory_info = db.Column(db.Text())
-  site = db.relationship('Project_Area', backref='project_info_page')
+  state = db.Column(db.String(128))
+  state_abbreviation = db.Column(db.String(2))
+  #site = db.relationship('Project_Area', backref='project_info_page')
+  sites = db.relationship(Project_Area,
+                             secondary='collection__program__info__mapper',
+                             primaryjoin=(Collection_Program_Info_Mapper.collection_program_info_id == id),
+                             backref='collection_program_info')
+
+class Collection_Program_Type(db.Model):
+  __tablename__ = 'collection_program_type'
+  id = db.Column(db.Integer, primary_key=True)
+  row_entry_date = db.Column(db.String(32))
+  row_update_date = db.Column(db.String(32))
+  program_type = db.Column(db.String(128))
+  #Use the __str__ for the foreign key relationships.
+  def __str__(self):
+    return self.program_type
 
 class Advisory_Limits(db.Model):
   __tablename__ = 'advisory_limits'
@@ -103,25 +124,6 @@ class Boundary_Mapper(db.Model):
   sample_site_id = db.Column(db.Integer, db.ForeignKey('sample__site.id'), primary_key=True)
   boundary_id = db.Column(db.Integer, db.ForeignKey('boundary.id'), primary_key=True)
 
-'''
-class Camera_Site(db.Model):
-  id = db.Column(db.Integer, primary_key=True)
-  row_entry_date = db.Column(db.String(32))
-  row_update_date = db.Column(db.String(32))
-
-  project_site_id = db.Column('project_site_id', db.Integer, db.ForeignKey('project_area.id'))
-  project_site = db.relationship('Project_Area', backref='sample_sites')
-
-  latitude = db.Column(db.Float, nullable=True)
-  longitude = db.Column(db.Float, nullable=True)
-
-  site_name = db.Column(db.String(), nullable=False)
-  site_alias = db.Column(db.String(), nullable=False)
-  description = db.Column(db.Text, nullable=True)
-
-  camera_source_url = db.Column(db.String(), nullable=False)
-  camera_icon = db.Column(db.String(), nullable=False)
-'''
 class Sample_Site(db.Model):
   __table_name__ = "sample_site"
   id = db.Column(db.Integer, primary_key=True)

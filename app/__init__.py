@@ -66,7 +66,9 @@ def build_flask_admin(app):
     site_extent_view, \
     popup_site_view, \
     sample_site_data_view, \
-    site_type_view
+    site_type_view, \
+    collection_program_info, \
+    collection_program_type
 
   from .admin_models import User, Role
   from .wq_models import Project_Area, \
@@ -78,7 +80,9 @@ def build_flask_admin(app):
     Boundary, \
     Site_Extent, \
     Sample_Site_Data,\
-    Site_Type
+    Site_Type, \
+    Collection_Program_Info, \
+    Collection_Program_Type
 
   login_manager.init_app(app)
   # Create admin
@@ -98,6 +102,8 @@ def build_flask_admin(app):
   admin.add_view(boundary_view(Boundary, db.session, name="Boundaries"))
   admin.add_view(site_extent_view(Site_Extent, db.session, name="Site Extents"))
   admin.add_view(sample_site_data_view(Sample_Site_Data, db.session, name="Site Data"))
+  admin.add_view(collection_program_info(Collection_Program_Info, db.session, name="Data Collection Programs"))
+  admin.add_view(collection_program_type(Collection_Program_Type, db.session, name="Collection Program Types"))
 
   admin.add_view(popup_site_view(Sample_Site, db.session, name="Popup Site", endpoint="popup_site_view"))
 
@@ -105,71 +111,19 @@ def build_flask_admin(app):
 
 def build_url_rules(app):
   from .view import ShowIntroPage, \
-    MyrtleBeachPage, \
-    SarasotaPage, \
-    CharlestonPage, \
-    PredictionsAPI, \
-    BacteriaDataAPI, \
-    StationDataAPI, \
     MaintenanceMode, \
-    KillDevilHillsPage, \
-    ShowAboutPage, \
-    MBAboutPage, \
-    CHSAboutPage, \
-    SarasotaAboutPage, \
-    KDHAboutPage, \
-    FollyBeachShowIntroPage,\
-    FollyBeachPage, \
-    FollyBeachAboutPage, \
-    FollyBeachCameraPage, \
-    CameraDataAPI, \
-    SiteMapPage, \
     SitesDataAPI, \
-    SiteBacteriaDataAPI
+    SiteBacteriaDataAPI, \
+    CollectionProgramInfoAPI
 
   #Page rules
   app.add_url_rule('/', view_func=ShowIntroPage.as_view('htb_intro'))
   #app.add_url_rule('/about', view_func=ShowAboutPage.as_view('about_page'))
-  #SC sites
-  '''
-  app.add_url_rule('/myrtlebeach', view_func=SiteMapPage.as_view('myrtlebeach'))
-  app.add_url_rule('/charleston', view_func=SiteMapPage.as_view('charleston'))
-  app.add_url_rule('/follybeach', view_func=SiteMapPage.as_view('follybeach'))
-  '''
-  #old route handling
-  '''
-  #app.add_url_rule('/myrtlebeach', view_func=MyrtleBeachPage.as_view('myrtlebeach'))
-  #app.add_url_rule('/myrtlebeach/about', view_func=MBAboutPage.as_view('mb_about'))
-  #app.add_url_rule('/charleston', view_func=CharlestonPage.as_view('charleston'))
-  #app.add_url_rule('/charleston/about', view_func=CHSAboutPage.as_view('chs_about'))
-
-
-  app.add_url_rule('/follybeach_intro', view_func=FollyBeachShowIntroPage.as_view('follybeach_intro_page'))
-  #app.add_url_rule('/follybeach', view_func=FollyBeachPage.as_view('follybeach'))
-  app.add_url_rule('/follybeach/about', view_func=FollyBeachAboutPage.as_view('follybeach_about'))
-  app.add_url_rule('/follybeach/camera/<string:cameraname>', view_func=FollyBeachCameraPage.as_view('follybeach_camera', cameraname='<cameraname>'))
-
-  #FL Sites
-  app.add_url_rule('/sarasota', view_func=SiteMapPage.as_view('sarasota'))
-  #app.add_url_rule('/sarasota', view_func=SarasotaPage.as_view('sarasota'))
-  #app.add_url_rule('/sarasota/about', view_func=SarasotaAboutPage.as_view('sarasota_about'))
-  #NC Sites
-  app.add_url_rule('/killdevilhills', view_func=SiteMapPage.as_view('killdevilhills'))
-  #app.add_url_rule('/killdevilhills', view_func=KillDevilHillsPage.as_view('killdevilhills'))
-  #app.add_url_rule('/killdevilhills/about', view_func=KDHAboutPage.as_view('kdh_about'))
-  '''
-
   #REST rules
   app.add_url_rule('/api/v1/<string:sitename>/sites', view_func=SitesDataAPI.as_view('site_data_view'), methods=['GET'])
   app.add_url_rule('/api/v1/<string:sitename>/<string:site>/bacteria', view_func=SiteBacteriaDataAPI.as_view('site_bacteria_data'), methods=['GET'])
+  app.add_url_rule('/api/v1/<string:sitename>/collectionprograminfo', view_func=CollectionProgramInfoAPI.as_view('collection_program_info'), methods=['GET'])
 
-  #old rest routes
-  '''
-  app.add_url_rule('/predictions/current_results/<string:sitename>', view_func=PredictionsAPI.as_view('predictions_view'), methods=['GET'])
-  app.add_url_rule('/sample_data/current_results/<string:sitename>', view_func=BacteriaDataAPI.as_view('sample_data_view'), methods=['GET'])
-  app.add_url_rule('/station_data/<string:sitename>/<string:station_name>', view_func=StationDataAPI.as_view('station_data_view'), methods=['GET','POST'])
-  #app.add_url_rule('/station_data/<string:sitename>/<string:station_name>', view_func=StationDataAPI.as_view('station_data_update'), methods=['POST'])
-  '''
   @app.before_request
   def check_for_maintenance():
     if IS_MAINTENANCE_MODE and request.path != url_for('maintenance'):
@@ -188,18 +142,6 @@ def build_url_rules(app):
   @app.errorhandler(404)
   def page_not_found(e):
     return render_template('404_page.html'), 404
-
-  """
-  @app.route('/<sitename>/rest/info')
-  def info_page(sitename):
-    app.logger.debug("info_page for site: %s" % (sitename))
-
-    if sitename == 'myrtlebeach':
-      return send_from_directory('/var/www/flaskhowsthebeach/sites/myrtlebeach', 'info.html')
-    elif sitename == 'sarasota':
-      return send_from_directory('/var/www/flaskhowsthebeach/sites/sarasota', 'info.html')
-  """
-  return
 
 def init_logging(app):
   app.logger.setLevel(logging.DEBUG)
