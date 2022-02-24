@@ -318,7 +318,7 @@ class SitePage(View):
 
         for site in sample_sites:
           #If the site doesn't have a type, or it's Default(water quality site).
-          if site.site_type is None or site.site_type.name == 'Default':
+          if site.site_type is None or site.site_type.name == 'Water Quality':
             if not build_advisory_from_db:
               advisory_data = data['advisory_data']['features']
               for site_data in advisory_data:
@@ -1573,7 +1573,7 @@ class SiteBacteriaDataAPI(MethodView):
             if site_rec.site_type.name is not None:
               site_type = site_rec.site_type.name
             else:
-              site_type = 'Default'
+              site_type = 'Water Quality'
             # All sites will have some base properties.
             properties = {'description': site_rec.description,
                           'site_type': site_type,
