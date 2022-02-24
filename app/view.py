@@ -486,11 +486,17 @@ def get_data_file(filename):
 
   return results,ret_code
 
-class SiteBaseAPI(MethodView):
+class BaseAPI(MethodView):
   def __init__(self):
-    self.site_name = None
     return
 
+  def json_error_response(self, error_code, error_message):
+    json_error = {}
+    json_error['error'] = {
+      'code': error_code,
+      'message': error_message
+    }
+    return json_error
 
 class PredictionsAPI(MethodView):
   def get(self, sitename=None):
@@ -1620,7 +1626,29 @@ class SiteBacteriaDataAPI(MethodView):
     current_app.logger.debug('SiteBacteriaDataAPI get for site: %s finished in %f seconds' % (sitename, time.time() - start_time))
     return (results, ret_code, {'Content-Type': 'application/json'})
 
-class CollectionProgramInfoAPI(MethodView):
+class CollectionProgramInfoAPI(BaseAPI):
+  def build_json(self, recs):
+    result = {
+      'type': 'Feature',
+      'geometry': {
+
+      },
+      'properties': {
+        'program': {}
+      }
+    }
+    for rec in recs:
+        program = result['properties']['program']
+        program_name = rec.program_type.program_type
+        program[program_name] = \
+        {
+          'program_name': rec.program,
+          'description': rec.description,
+          'url': rec.url,
+          'program_type': rec.program_type.program_type,
+          'state': rec.state
+        }
+    return result
   def get(self, sitename=None):
     start_time = time.time()
     current_app.logger.debug('IP: %s WaterQualityProgramAPI get for %s.' % (request.remote_addr, sitename))
@@ -1631,13 +1659,18 @@ class CollectionProgramInfoAPI(MethodView):
         .join(Collection_Program_Info_Mapper, Collection_Program_Info_Mapper.collection_program_info_id == Collection_Program_Info.id) \
         .join(Project_Area, Project_Area.id == Collection_Program_Info_Mapper.project_area_id) \
         .filter(Project_Area.area_name == sitename)
+
       if 'program_type' in request.args:
         program_type = request.args['program_type']
-        #program_info = program_info.filter(Collection_Program_Info.program_type_id == program_type)
+        program_info.join(Collection_Program_Type, Collection_Program_Type.id == Collection_Program_Info.program_type_id) \
+          .filter(Collection_Program_Type.program_type == program_type)
+
 
       program_info_recs = program_info.all()
+      results = self.build_json(program_info_recs)
+      ret_code = 200
     except Exception as e:
-      results = build_json_error(501, "Error querying Water Quality Program info.")
+      results = self.json_error_response(501, "Error querying Water Quality Program info.")
       current_app.logger.exception(e)
 
     return (results, ret_code, {'Content-Type': 'application/json'})
