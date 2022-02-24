@@ -118,7 +118,7 @@ else:
 
 #Number of hours the advisory should be considered valid.
 SITE_TYPE_DATA_VALID_TIMEOUTS= {
-  'Default': 192,
+  'Water Quality': 192,
   'Nowcast': 24,
   'Shellfish': 24,
   'Rip Current': 4
