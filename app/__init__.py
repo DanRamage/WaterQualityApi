@@ -120,7 +120,8 @@ def build_url_rules(app):
   app.add_url_rule('/', view_func=ShowIntroPage.as_view('htb_intro'))
   #app.add_url_rule('/about', view_func=ShowAboutPage.as_view('about_page'))
   #REST rules
-  app.add_url_rule('/api/v1/<string:sitename>/sites', view_func=SitesDataAPI.as_view('site_data_view'), methods=['GET'])
+  app.add_url_rule('/api/v1/<string:sitename>', view_func=SitesDataAPI.as_view('site_data_view'), methods=['GET'])
+  app.add_url_rule('/api/v1/<string:sitename>/sites', view_func=SitesDataAPI.as_view('sites_data_view'), methods=['GET'])
   app.add_url_rule('/api/v1/<string:sitename>/<string:site>/bacteria', view_func=SiteBacteriaDataAPI.as_view('site_bacteria_data'), methods=['GET'])
   app.add_url_rule('/api/v1/<string:sitename>/collectionprograminfo', view_func=CollectionProgramInfoAPI.as_view('collection_program_info'), methods=['GET'])
 

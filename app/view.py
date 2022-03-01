@@ -1189,7 +1189,7 @@ class SiteMapPage(View):
 
 
 
-class SitesDataAPI(MethodView):
+class SitesDataAPI(BaseAPI):
 
   def load_data_file(self, filename):
     current_app.logger.debug("load_data_file Started.")
@@ -1327,12 +1327,15 @@ class SitesDataAPI(MethodView):
 
     return shellfish_data
 
-  def get_sample_sites(self, sitename):
+  def get_sample_sites(self, sitename, station):
     try:
-      sample_sites = db.session.query(Sample_Site) \
+      sample_sites_query = db.session.query(Sample_Site) \
         .join(Project_Area, Project_Area.id == Sample_Site.project_site_id) \
         .join(Site_Type, Site_Type.id == Sample_Site.site_type_id) \
-        .filter(Project_Area.area_name == sitename).all()
+        .filter(Project_Area.area_name == sitename)
+      if station is not None:
+        sample_sites_query = sample_sites_query.filter(Sample_Site.site_name == station)
+      sample_sites = sample_sites_query.all()
       return sample_sites
     except Exception as e:
       current_app.logger.error("IP: %s error getting samples sites from database." % (request.remote_addr))
@@ -1341,7 +1344,11 @@ class SitesDataAPI(MethodView):
 
   def get(self, sitename):
     start_time = time.time()
-    current_app.logger.debug('IP: %s SiteDataAPI get for site: %s' % (request.remote_addr, sitename))
+    station = None
+    if 'site' in request.args:
+      station = request.args['site']
+
+    current_app.logger.debug('IP: %s SiteDataAPI get for site: %s station: %s' % (request.remote_addr, sitename, station))
     ret_code = 501
     results =  {
       'advisory_info': {},
@@ -1363,7 +1370,7 @@ class SitesDataAPI(MethodView):
         if 'ripcurrents' in SITES_CONFIG[sitename]:
           ripcurrents_data = self.load_data_file(SITES_CONFIG[sitename]['ripcurrents'])
 
-        sample_sites = self.get_sample_sites(sitename)
+        sample_sites = self.get_sample_sites(sitename, station)
 
         limits = self.get_advisory_limits(sitename)
         if limits is not None:
@@ -1378,7 +1385,6 @@ class SitesDataAPI(MethodView):
             results['project_area'] = {
               'name': site_rec.project_site.display_name
             }
-
           if site_rec.site_type.name is not None:
             site_type = site_rec.site_type.name
           else:
