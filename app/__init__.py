@@ -10,18 +10,8 @@ from logging.handlers import RotatingFileHandler
 from logging import Formatter
 from flask_cors import CORS
 
-#app = Flask(__name__)
-
-#db = SQLAlchemy(app)
 db = SQLAlchemy()
 login_manager = flask_login.LoginManager()
-"""
-# Create in-memory database
-
-app.config['DATABASE_FILE'] = DATABASE_FILE
-app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
-app.config['SQLALCHEMY_ECHO'] = SQLALCHEMY_ECHO
-"""
 
 def create_app(config_file):
   app = Flask(__name__)

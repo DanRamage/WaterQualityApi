@@ -1377,7 +1377,7 @@ class SitesDataAPI(BaseAPI):
           results['advisory_info']['limits'] = limits
         features = []
 
-        self.get_program_information(sitename)
+        #self.get_program_information(sitename)
 
         for ndx,site_rec in enumerate(sample_sites):
           #We set the project info once.
@@ -1459,12 +1459,14 @@ class SitesDataAPI(BaseAPI):
       else:
         sites = list(SITES_CONFIG.keys())
 
-        results = build_json_error(400, "Site: %s is not a vaild site. Valid sites: %s" % (sitename,sites))
+        #results = build_json_error(400, "Site: %s is not a vaild site. Valid sites: %s" % (sitename,sites))
+        results = self.json_error_response(400, "Site: %s is not a vaild site. Valid sites: %s" % (sitename,sites))
         client_results = json.dumps(results)
 
     except Exception as e:
       current_app.logger.exception(e)
-      client_results = build_json_error(501, 'Server encountered a problem with the query.')
+      #client_results = build_json_error(501, 'Server encountered a problem with the query.')
+      client_results = self.json_error_response(501, 'Server encountered a problem with the query.')
 
     current_app.logger.debug('IP: %s SiteDataAPI get for site: %s finished in %f seconds' % (request.remote_addr,
                                                                                              sitename,
