@@ -1,0 +1,317 @@
+swagger: '2.0'
+info:
+  description: This API allows users to get various data, such as current NOWCast predictions as well as current and historical bacterial sample data for sites.
+  version: 1.0.0
+  title: Hows The Beach API
+  # put the contact info for your development or API team
+  contact:
+    email: ramaged@mailbox.sc.edu
+
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+
+# tags are used for organizing operations
+tags:
+- name: admins
+  description: Secured Admin-only calls
+- name: users
+  description: Operations available to regular users
+
+paths:
+  /myrtlebeach/sites:
+    get:
+      tags:
+      - users
+      summary: Return all sites for Myrtle Beach
+      operationId: sites
+      description: |
+        If no site parameter is given, this returns all the sites for Myrtle Beach.
+      produces:
+      - application/json
+      parameters:
+      - in: query
+        name: site
+        description: pass an optional site id string for looking up specific site.
+        required: false
+        type: string
+      - in: query
+        name: wq_limits
+        description: pass in True to receive the limits for the water quality tests.
+        required: false
+        type: string
+      - in: query
+        name: project_area
+        description: pass in True to receive information, such as the display name, for the project area.
+        required: false
+        type: string
+      - in: query
+        name: site_type
+        description: To receive only one type of site, set this parameter. Currently site types can be Water Quality, Camera Site, Shellfish, Water Quality Nowcast
+        required: false
+        type: string
+
+
+      responses:
+        200:
+          description: search results matching criteria
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SiteItem'
+        400:
+          description: bad input parameter
+  /charleston/sites:
+    get:
+      tags:
+      - users
+      summary: Return all sites for Charleston Harbor
+      operationId: sites
+      description: |
+        If no site parameter is given, this returns all the sites for Charleston Harbor.
+      produces:
+      - application/json
+      parameters:
+      - in: query
+        name: site
+        description: pass an optional site id string for looking up specific site.
+        required: false
+        type: string
+      - in: query
+        name: wq_limits
+        description: pass in True to receive the limits for the water quality tests.
+        required: false
+        type: string
+      - in: query
+        name: project_area
+        description: pass in True to receive information, such as the display name, for the project area.
+        required: false
+        type: string
+      - in: query
+        name: site_type
+        description: To receive only one type of site, set this parameter. Currently site types can be Water Quality, Camera Site, Shellfish, Water Quality Nowcast
+        required: false
+        type: string
+
+      responses:
+        200:
+          description: search results matching criteria
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SiteItem'
+        400:
+          description: bad input parameter
+  /follybeach/sites:
+    get:
+      tags:
+      - users
+      summary: Return all sites for Folly Beach
+      operationId: sites
+      description: |
+        If no site parameter is given, this returns all the sites for Folly Beach.
+      produces:
+      - application/json
+      parameters:
+      - in: query
+        name: site
+        description: pass an optional site id string for looking up specific site.
+        required: false
+        type: string
+      - in: query
+        name: wq_limits
+        description: pass in True to receive the limits for the water quality tests.
+        required: false
+        type: string
+      - in: query
+        name: project_area
+        description: pass in True to receive information, such as the display name, for the project area.
+        required: false
+        type: string
+      - in: query
+        name: site_type
+        description: To receive only one type of site, set this parameter. Currently site types can be Water Quality, Camera Site, Shellfish, Water Quality Nowcast
+        required: false
+        type: string
+
+      responses:
+        200:
+          description: search results matching criteria
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SiteItem'
+        400:
+          description: bad input parameter
+  /sarasota/sites:
+    get:
+      tags:
+      - users
+      summary: Return all sites for Sarasota/Manatee
+      operationId: sites
+      description: |
+        If no site parameter is given, this returns all the sites for Sarasota/Manatee.
+      produces:
+      - application/json
+      parameters:
+      - in: query
+        name: site
+        description: pass an optional site id string for looking up specific site.
+        required: false
+        type: string
+      - in: query
+        name: wq_limits
+        description: pass in True to receive the limits for the water quality tests.
+        required: false
+        type: string
+      - in: query
+        name: project_area
+        description: pass in True to receive information, such as the display name, for the project area.
+        required: false
+        type: string
+      - in: query
+        name: site_type
+        description: To receive only one type of site, set this parameter. Currently site
+        types can be Water Quality, Camera Site, Shellfish, Water Quality Nowcast
+        required: false
+        type: string
+
+      responses:
+        200:
+          description: search results matching criteria
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SiteItem'
+        400:
+          description: bad input parameter
+  /killdevilhills/sites:
+    get:
+      tags:
+      - users
+      summary: Return all sites for Kill Devil Hills
+      operationId: sites
+      description: |
+        If no site parameter is given, this returns all the sites for Kill Devil Hills
+      produces:
+      - application/json
+      parameters:
+      - in: query
+        name: site
+        description: pass an optional site id string for looking up specific site.
+        required: false
+        type: string
+      - in: query
+        name: wq_limits
+        description: pass in True to receive the limits for the water quality tests.
+        required: false
+        type: string
+      - in: query
+        name: project_area
+        description: pass in True to receive information, such as the display name, for the project area.
+        required: false
+        type: string
+      - in: query
+        name: site_type
+        description: To receive only one type of site, set this parameter. Currently site
+        types can be Water Quality, Camera Site, Shellfish, Water Quality Nowcast
+        required: false
+        type: string
+      responses:
+        200:
+          description: search results matching criteria
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SiteItem'
+        400:
+          description: bad input parameter
+definitions:
+  SiteItem:
+    description: A GeoJSON response for one or more sites. The response will vary depending on the type of site defined in the site_type parameter. Each one will be described below. Currently there are site_types of "Water Quality", "Shellfish", and "Camera"
+    type: object
+    required:
+    - type
+    - id
+    - geometry
+    - properties
+    properties:
+      sites:
+        properties:
+          type:
+            type: string
+            example: FeatureCollection
+          features:
+            type: array
+            properties:
+              type:
+                type: string
+              geometry:
+                description: A GeoJSON formated geometry field.
+                type: object
+                properties:
+                  type:
+                    type: string
+                  coordinates:
+                    type: array
+                    items:
+                      type: array
+                      example: [longitude,latitude]
+
+              description:
+                type: string
+                example: Ocean Lakes Campground
+              site_type:
+                type: string
+                example: Water Quality
+              site_name:
+                type: string
+                example: WAC-029
+              Water Quality:
+                type: object
+                properties:
+                  issues_advisories:
+                    type: boolean
+                  under_advisory:
+                    type: boolean
+                  current_advisory_text:
+                    type: string
+                  nowcasts:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        format: YYYY-MM-DD HH:MM:SS
+                      level:
+                        type: string
+                      hours_data_valid:
+                        type: integer
+                  advisory:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        format: YYYY-MM-DD HH:MM:SS
+                      value:
+                        type: float
+                      hours_data_valid:
+                        type: integer
+              Shellfish:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: YYYY-MM-DD HH:MM:SS
+                  value:
+                    type: boolean
+                  hours_data_valid:
+                    type: integer
+
+
+# Added by API Auto Mocking Plugin
+# host: devapi.howsthebeach.org
+schemes:
+ - https
+# Added by API Auto Mocking Plugin
+host: devapi.howsthebeach.org
+basePath: /api/v1/

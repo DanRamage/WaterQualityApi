@@ -487,9 +487,11 @@ def get_data_file(filename):
   return results,ret_code
 
 class BaseAPI(MethodView):
-  def __init__(self):
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
     return
-
+  def parse_request_args(self):
+    return
   def json_error_response(self, error_code, error_message):
     json_error = {}
     json_error['error'] = {
@@ -1190,7 +1192,27 @@ class SiteMapPage(View):
 
 
 class SitesDataAPI(BaseAPI):
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self.station = None
+    self.site_type = None
+    self.return_wq_limits = False
+    self.return_project_area = False
 
+    #If provided, this is a specific site to look up.
+    if 'site' in request.args:
+      self.station = request.args['site']
+    #If provided, this will return only sites that match this type.
+    if 'site_type' in request.args:
+      self.site_type = request.args['site_type']
+    #If provided, this will provide the bacteria test limits for water quality.
+    if 'wq_limits' in request.args:
+      self.return_wq_limits = bool(request.args['wq_limits'])
+    #If provided, will return info about the project area, such as the name.
+    if 'project_area' in request.args:
+      self.return_project_area = bool(request.args['project_area'])
+
+    return
   def load_data_file(self, filename):
     current_app.logger.debug("load_data_file Started.")
 
@@ -1309,17 +1331,6 @@ class SitesDataAPI(BaseAPI):
       current_app.logger.exception(e)
     return None
 
-  def get_program_information(self, sitename):
-    #Get the program info
-    try:
-      project_info_recs = db.session.query(Project_Info_Page)\
-        .join(Project_Area, Project_Area.id == Project_Info_Page.site_id)\
-        .filter(Project_Area.area_name == sitename)\
-        .all()
-      project_info_recs
-    except Exception as e:
-      current_app.logger.exception(e)
-
   def add_shellfish_data(self, sitename):
     shellfish_data = None
     if 'shellfish_closures' in SITES_CONFIG[sitename]:
@@ -1327,14 +1338,19 @@ class SitesDataAPI(BaseAPI):
 
     return shellfish_data
 
-  def get_sample_sites(self, sitename, station):
+  def get_sample_sites(self, sitename, **kwargs):
     try:
+      station = kwargs.get('station', None)
+      site_types = kwargs.get('site_types', None)
       sample_sites_query = db.session.query(Sample_Site) \
         .join(Project_Area, Project_Area.id == Sample_Site.project_site_id) \
         .join(Site_Type, Site_Type.id == Sample_Site.site_type_id) \
         .filter(Project_Area.area_name == sitename)
       if station is not None:
         sample_sites_query = sample_sites_query.filter(Sample_Site.site_name == station)
+      elif site_types is not None:
+        sample_sites_query = sample_sites_query.filter(Site_Type.name == site_types)
+
       sample_sites = sample_sites_query.all()
       return sample_sites
     except Exception as e:
@@ -1344,17 +1360,15 @@ class SitesDataAPI(BaseAPI):
 
   def get(self, sitename):
     start_time = time.time()
-    station = None
-    if 'site' in request.args:
-      station = request.args['site']
-
-    current_app.logger.debug('IP: %s SiteDataAPI get for site: %s station: %s' % (request.remote_addr, sitename, station))
+    current_app.logger.debug('IP: %s SiteDataAPI get for site: %s request args: %s' % (request.remote_addr, sitename, str(request.args)))
     ret_code = 501
     results =  {
-      'advisory_info': {},
       'sites': {},
-      'project_area': {}
     }
+    if self.return_wq_limits:
+      results['advisory_info'] =  {}
+    if self.return_project_area:
+      results['project_area'] = {}
 
     try:
       if sitename in SITES_CONFIG:
@@ -1370,18 +1384,18 @@ class SitesDataAPI(BaseAPI):
         if 'ripcurrents' in SITES_CONFIG[sitename]:
           ripcurrents_data = self.load_data_file(SITES_CONFIG[sitename]['ripcurrents'])
 
-        sample_sites = self.get_sample_sites(sitename, station)
+        sample_sites = self.get_sample_sites(sitename, station=self.station, site_types=self.site_type)
 
-        limits = self.get_advisory_limits(sitename)
-        if limits is not None:
-          results['advisory_info']['limits'] = limits
+        if self.return_wq_limits:
+          limits = self.get_advisory_limits(sitename)
+          if limits is not None:
+            results['advisory_info']['limits'] = limits
+
         features = []
-
-        #self.get_program_information(sitename)
 
         for ndx,site_rec in enumerate(sample_sites):
           #We set the project info once.
-          if ndx == 0:
+          if self.return_project_area and ndx == 0:
             results['project_area'] = {
               'name': site_rec.project_site.display_name
             }
