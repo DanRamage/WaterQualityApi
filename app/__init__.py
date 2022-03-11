@@ -1,5 +1,5 @@
 import os
-from flask import Flask, current_app, redirect, url_for, request, render_template
+from flask import Flask, current_app, redirect, url_for, request, render_template, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 import flask_admin as flask_admin
 import flask_login as flask_login
@@ -108,12 +108,20 @@ def build_url_rules(app):
 
   #Page rules
   app.add_url_rule('/', view_func=ShowIntroPage.as_view('htb_intro'))
-  #app.add_url_rule('/about', view_func=ShowAboutPage.as_view('about_page'))
   #REST rules
   app.add_url_rule('/api/v1/<string:sitename>', view_func=SitesDataAPI.as_view('site_data_view'), methods=['GET'])
   app.add_url_rule('/api/v1/<string:sitename>/sites', view_func=SitesDataAPI.as_view('sites_data_view'), methods=['GET'])
   app.add_url_rule('/api/v1/<string:sitename>/<string:site>/bacteria', view_func=SiteBacteriaDataAPI.as_view('site_bacteria_data'), methods=['GET'])
   app.add_url_rule('/api/v1/<string:sitename>/collectionprograminfo', view_func=CollectionProgramInfoAPI.as_view('collection_program_info'), methods=['GET'])
+  #API Help Page
+  @app.route('/api/v1/docs')
+  def swagger_ui():
+    return render_template('swagger_ui.html')
+
+  @app.route('/api/v1/spec')
+  def get_spec():
+    current_app.logger.debug("API file: %s" % (os.path.join(app.root_path, 'HowsTheBeachAPI.yaml')))
+    return send_from_directory(app.root_path, 'HowsTheBeachAPI.yaml')
 
   @app.before_request
   def check_for_maintenance():

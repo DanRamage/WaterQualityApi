@@ -1,4 +1,4 @@
-swagger: '2.0'
+swagger: "2.0"
 info:
   description: This API allows users to get various data, such as current NOWCast predictions as well as current and historical bacterial sample data for sites.
   version: 1.0.0
@@ -171,8 +171,7 @@ paths:
         type: string
       - in: query
         name: site_type
-        description: To receive only one type of site, set this parameter. Currently site
-        types can be Water Quality, Camera Site, Shellfish, Water Quality Nowcast
+        description: To receive only one type of site, set this parameter. Currently site types can be Water Quality, Camera Site, Shellfish, Water Quality Nowcast
         required: false
         type: string
 
@@ -213,8 +212,7 @@ paths:
         type: string
       - in: query
         name: site_type
-        description: To receive only one type of site, set this parameter. Currently site
-        types can be Water Quality, Camera Site, Shellfish, Water Quality Nowcast
+        description: To receive only one type of site, set this parameter. Currently site types can be Water Quality, Camera Site, Shellfish, Water Quality Nowcast
         required: false
         type: string
       responses:
