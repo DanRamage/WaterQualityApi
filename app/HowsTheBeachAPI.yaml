@@ -13,8 +13,6 @@ info:
 
 # tags are used for organizing operations
 tags:
-- name: admins
-  description: Secured Admin-only calls
 - name: users
   description: Operations available to regular users
 
