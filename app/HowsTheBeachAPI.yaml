@@ -28,14 +28,14 @@ paths:
       produces:
       - application/json
       parameters:
-        - in: path
+      - in: path
         name: site_name
         schema:
           type: string
         required: true
         description: This is the geographic site the station is in. Acceptable values are myrtlebeach, follybeach, killdevilhills, or sarasota.
 
-        - in: query
+      - in: query
         name: site
         description: pass an optional site id string for looking up specific site.
         required: false
@@ -78,19 +78,17 @@ paths:
       produces:
       - application/json
       parameters:
-        - in: path
-          name: site_name
-          schema:
-            type: string
-          required: true
-          description: This is the geographic site the station is in. Acceptable values are myrtlebeach, follybeach, killdevilhills, or sarasota.
+      - in: path
+        name: site_name
+        type: string
+        required: true
+        description: This is the geographic site the station is in. Acceptable values are myrtlebeach, follybeach, killdevilhills, or sarasota.
 
-        - in: path
-          name: station_name
-          schema:
-            type: string
-          required: true
-          description: This is the station name to query the wter quality sampling data for.
+      - in: path
+        name: station_name
+        type: string
+        required: true
+        description: This is the station name to query the wter quality sampling data for.
       - in: query
         name: startdate
         description: The date/time for the start of the bacteria data query
