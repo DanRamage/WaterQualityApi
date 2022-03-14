@@ -193,13 +193,9 @@ definitions:
   BacteriaDataSiteItem:
     description: A GeoJSON response for the supplied station. This contains the sampled bacteria data for the provided startdate/enddate range.
     type: object
-    required:
-    - type
-    - id
-    - geometry
-    - properties
     properties:
-      sites:
+      properties:
+        type: object
         properties:
           type:
             type: string
@@ -240,7 +236,6 @@ definitions:
                           date:
                             type: string
                             format: YYYY-MM-DD HH:MM:SS
-
                           value:
                             type: number
                             example: 10.0
