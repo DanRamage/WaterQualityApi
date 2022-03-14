@@ -63,7 +63,8 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/SiteItem'
+              $ref: '#/definitions/WaterQualitySiteItem'
+              $ref: '#/definitions/ShellfishSiteItem'
         400:
           description: bad input parameter
 
@@ -111,7 +112,7 @@ paths:
           description: bad input parameter
 
 definitions:
-  SiteItem:
+  WaterQualitySiteItem:
     description: A GeoJSON response for one or more sites. The response will vary depending on the type of site defined in the site_type parameter. Each one will be described below. Currently there are site_types of "Water Quality", "Shellfish", and "Camera"
     type: object
     required:
@@ -180,6 +181,46 @@ definitions:
                           type: float
                         hours_data_valid:
                           type: integer
+  ShellfishSiteItem:
+    description: A GeoJSON response for one or more sites. The response will vary depending on the type of site defined in the site_type parameter. Each one will be described below. Currently there are site_types of "Water Quality", "Shellfish", and "Camera"
+    type: object
+    required:
+    - type
+    - id
+    - geometry
+    - properties
+    properties:
+      sites:
+        properties:
+          type:
+            type: string
+            example: FeatureCollection
+          features:
+            type: array
+            items:
+              type: object
+              properties:
+                geometry:
+                  description: A GeoJSON formated geometry field.
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    coordinates:
+                      type: array
+                      items:
+                        type: array
+                        example: [longitude,latitude]
+
+                description:
+                  type: string
+                  example: Ocean Lakes Campground
+                site_type:
+                  type: string
+                  example: Water Quality
+                site_name:
+                  type: string
+                  example: WAC-029
                 Shellfish:
                   type: object
                   properties:
