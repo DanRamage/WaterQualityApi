@@ -17,11 +17,11 @@ tags:
   description: Operations available to regular users
 
 paths:
-  /{site_name}/sites:
+  /{location_name}/sites:
     get:
       tags:
       - users
-      summary: Return all sites for Myrtle Beach
+      summary: Return all stations for the given location_name.
       operationId: sites
       description: |
         If no site parameter is given, this returns all the sites for Myrtle Beach.
@@ -29,7 +29,7 @@ paths:
       - application/json
       parameters:
       - in: path
-        name: site_name
+        name: location_name
         schema:
           type: string
         required: true
@@ -67,7 +67,7 @@ paths:
         400:
           description: bad input parameter
 
-  /{site_name}/{station_name}/bacteria:
+  /{location_name}/{station_name}/bacteria:
     get:
       tags:
       - users
@@ -79,7 +79,7 @@ paths:
       - application/json
       parameters:
       - in: path
-        name: site_name
+        name: location_name
         type: string
         required: true
         description: This is the geographic site the station is in. Acceptable values are myrtlebeach, follybeach, killdevilhills, or sarasota.
