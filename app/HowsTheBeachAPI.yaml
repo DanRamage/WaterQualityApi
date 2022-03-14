@@ -190,6 +190,60 @@ definitions:
                     hours_data_valid:
                       type: integer
 
+  BacteriaDataSiteItem:
+    description: A GeoJSON response for the supplied station. This contains the sampled bacteria data for the provided startdate/enddate range.
+    type: object
+    required:
+    - type
+    - id
+    - geometry
+    - properties
+    properties:
+      sites:
+        properties:
+          type:
+            type: string
+            example: FeatureCollection
+          features:
+            type: array
+            items:
+              type: object
+              properties:
+                geometry:
+                  description: A GeoJSON formated geometry field.
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    coordinates:
+                      type: array
+                      items:
+                        example: [longitude,latitude]
+
+                description:
+                  type: string
+                  example: Ocean Lakes Campground
+                site_type:
+                  type: string
+                  example: Water Quality
+                site_name:
+                  type: string
+                  example: WAC-029
+                Water Quality:
+                  type: object
+                  properties:
+                    results:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          date:
+                            type: string
+                            format: YYYY-MM-DD HH:MM:SS
+
+                          value:
+                            type: number
+                            example: 10.0
 
 schemes:
  - https
