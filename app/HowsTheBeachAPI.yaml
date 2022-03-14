@@ -199,7 +199,7 @@ definitions:
         properties:
           type:
             type: string
-            example: FeatureCollection
+            example: Feature
           features:
             type: array
             items:
