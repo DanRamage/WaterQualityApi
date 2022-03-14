@@ -30,8 +30,7 @@ paths:
       parameters:
       - in: path
         name: location_name
-        schema:
-          type: string
+        type: string
         required: true
         description: This is the geographic site the station is in. Acceptable values are myrtlebeach, follybeach, killdevilhills, or sarasota.
 
@@ -63,8 +62,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/WaterQualitySiteItem'
-              $ref: '#/definitions/ShellfishSiteItem'
+              $ref: '#/definitions/SiteItem'
         400:
           description: bad input parameter
 
@@ -112,8 +110,8 @@ paths:
           description: bad input parameter
 
 definitions:
-  WaterQualitySiteItem:
-    description: A GeoJSON response for one or more sites. The response will vary depending on the type of site defined in the site_type parameter. Each one will be described below. Currently there are site_types of "Water Quality", "Shellfish", and "Camera"
+  SiteItem:
+    description: A GeoJSON response for one or more sites. The response will vary depending on the type of site defined in the site_type parameter. Each one will be described below. Currently there are site_types of "Water Quality", "Shellfish", and "Camera". The site_type will define what type of data payload is present.
     type: object
     required:
     - type
@@ -140,7 +138,6 @@ definitions:
                     coordinates:
                       type: array
                       items:
-                        type: array
                         example: [longitude,latitude]
 
                 description:
@@ -161,6 +158,16 @@ definitions:
                       type: boolean
                     current_advisory_text:
                       type: string
+                    advisory:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: YYYY-MM-DD HH:MM:SS
+                        value:
+                          type: number
+                        hours_data_valid:
+                          type: integer
                     nowcasts:
                       type: object
                       properties:
@@ -171,56 +178,7 @@ definitions:
                           type: string
                         hours_data_valid:
                           type: integer
-                    advisory:
-                      type: object
-                      properties:
-                        date:
-                          type: string
-                          format: YYYY-MM-DD HH:MM:SS
-                        value:
-                          type: float
-                        hours_data_valid:
-                          type: integer
-  ShellfishSiteItem:
-    description: A GeoJSON response for one or more sites. The response will vary depending on the type of site defined in the site_type parameter. Each one will be described below. Currently there are site_types of "Water Quality", "Shellfish", and "Camera"
-    type: object
-    required:
-    - type
-    - id
-    - geometry
-    - properties
-    properties:
-      sites:
-        properties:
-          type:
-            type: string
-            example: FeatureCollection
-          features:
-            type: array
-            items:
-              type: object
-              properties:
-                geometry:
-                  description: A GeoJSON formated geometry field.
-                  type: object
-                  properties:
-                    type:
-                      type: string
-                    coordinates:
-                      type: array
-                      items:
-                        type: array
-                        example: [longitude,latitude]
 
-                description:
-                  type: string
-                  example: Ocean Lakes Campground
-                site_type:
-                  type: string
-                  example: Water Quality
-                site_name:
-                  type: string
-                  example: WAC-029
                 Shellfish:
                   type: object
                   properties:
@@ -233,10 +191,7 @@ definitions:
                       type: integer
 
 
-# Added by API Auto Mocking Plugin
-# host: devapi.howsthebeach.org
 schemes:
  - https
-# Added by API Auto Mocking Plugin
 host: devapi.howsthebeach.org
 basePath: /api/v1/
