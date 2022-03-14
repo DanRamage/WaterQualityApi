@@ -17,7 +17,7 @@ tags:
   description: Operations available to regular users
 
 paths:
-  /myrtlebeach/sites:
+  /{site_name}/sites:
     get:
       tags:
       - users
@@ -28,7 +28,14 @@ paths:
       produces:
       - application/json
       parameters:
-      - in: query
+        - in: path
+        name: site_name
+        schema:
+          type: string
+        required: true
+        description: This is the geographic site the station is in. Acceptable values are myrtlebeach, follybeach, killdevilhills, or sarasota.
+
+        - in: query
         name: site
         description: pass an optional site id string for looking up specific site.
         required: false
@@ -59,36 +66,40 @@ paths:
               $ref: '#/definitions/SiteItem'
         400:
           description: bad input parameter
-  /charleston/sites:
+
+  /{site_name}/{station_name}/bacteria:
     get:
       tags:
       - users
-      summary: Return all sites for Charleston Harbor
-      operationId: sites
+      summary: Return the water quality sample data for the date range provided.
+      operationId: bacteriadata
       description: |
-        If no site parameter is given, this returns all the sites for Charleston Harbor.
+        Return the water quality sample data for the date range provided.
       produces:
       - application/json
       parameters:
+        - in: path
+          name: site_name
+          schema:
+            type: string
+          required: true
+          description: This is the geographic site the station is in. Acceptable values are myrtlebeach, follybeach, killdevilhills, or sarasota.
+
+        - in: path
+          name: station_name
+          schema:
+            type: string
+          required: true
+          description: This is the station name to query the wter quality sampling data for.
       - in: query
-        name: site
-        description: pass an optional site id string for looking up specific site.
-        required: false
+        name: startdate
+        description: The date/time for the start of the bacteria data query
+        required: true
         type: string
       - in: query
-        name: wq_limits
-        description: pass in True to receive the limits for the water quality tests.
-        required: false
-        type: string
-      - in: query
-        name: project_area
-        description: pass in True to receive information, such as the display name, for the project area.
-        required: false
-        type: string
-      - in: query
-        name: site_type
-        description: To receive only one type of site, set this parameter. Currently site types can be Water Quality, Camera Site, Shellfish, Water Quality Nowcast
-        required: false
+        name: enddate
+        description: The date/time for the end of the bacteria data query
+        required: true
         type: string
 
       responses:
@@ -100,128 +111,7 @@ paths:
               $ref: '#/definitions/SiteItem'
         400:
           description: bad input parameter
-  /follybeach/sites:
-    get:
-      tags:
-      - users
-      summary: Return all sites for Folly Beach
-      operationId: sites
-      description: |
-        If no site parameter is given, this returns all the sites for Folly Beach.
-      produces:
-      - application/json
-      parameters:
-      - in: query
-        name: site
-        description: pass an optional site id string for looking up specific site.
-        required: false
-        type: string
-      - in: query
-        name: wq_limits
-        description: pass in True to receive the limits for the water quality tests.
-        required: false
-        type: string
-      - in: query
-        name: project_area
-        description: pass in True to receive information, such as the display name, for the project area.
-        required: false
-        type: string
-      - in: query
-        name: site_type
-        description: To receive only one type of site, set this parameter. Currently site types can be Water Quality, Camera Site, Shellfish, Water Quality Nowcast
-        required: false
-        type: string
 
-      responses:
-        200:
-          description: search results matching criteria
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/SiteItem'
-        400:
-          description: bad input parameter
-  /sarasota/sites:
-    get:
-      tags:
-      - users
-      summary: Return all sites for Sarasota/Manatee
-      operationId: sites
-      description: |
-        If no site parameter is given, this returns all the sites for Sarasota/Manatee.
-      produces:
-      - application/json
-      parameters:
-      - in: query
-        name: site
-        description: pass an optional site id string for looking up specific site.
-        required: false
-        type: string
-      - in: query
-        name: wq_limits
-        description: pass in True to receive the limits for the water quality tests.
-        required: false
-        type: string
-      - in: query
-        name: project_area
-        description: pass in True to receive information, such as the display name, for the project area.
-        required: false
-        type: string
-      - in: query
-        name: site_type
-        description: To receive only one type of site, set this parameter. Currently site types can be Water Quality, Camera Site, Shellfish, Water Quality Nowcast
-        required: false
-        type: string
-
-      responses:
-        200:
-          description: search results matching criteria
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/SiteItem'
-        400:
-          description: bad input parameter
-  /killdevilhills/sites:
-    get:
-      tags:
-      - users
-      summary: Return all sites for Kill Devil Hills
-      operationId: sites
-      description: |
-        If no site parameter is given, this returns all the sites for Kill Devil Hills
-      produces:
-      - application/json
-      parameters:
-      - in: query
-        name: site
-        description: pass an optional site id string for looking up specific site.
-        required: false
-        type: string
-      - in: query
-        name: wq_limits
-        description: pass in True to receive the limits for the water quality tests.
-        required: false
-        type: string
-      - in: query
-        name: project_area
-        description: pass in True to receive information, such as the display name, for the project area.
-        required: false
-        type: string
-      - in: query
-        name: site_type
-        description: To receive only one type of site, set this parameter. Currently site types can be Water Quality, Camera Site, Shellfish, Water Quality Nowcast
-        required: false
-        type: string
-      responses:
-        200:
-          description: search results matching criteria
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/SiteItem'
-        400:
-          description: bad input parameter
 definitions:
   SiteItem:
     description: A GeoJSON response for one or more sites. The response will vary depending on the type of site defined in the site_type parameter. Each one will be described below. Currently there are site_types of "Water Quality", "Shellfish", and "Camera"
@@ -239,69 +129,69 @@ definitions:
             example: FeatureCollection
           features:
             type: array
-            properties:
-              type:
-                type: string
-              geometry:
-                description: A GeoJSON formated geometry field.
-                type: object
-                properties:
-                  type:
-                    type: string
-                  coordinates:
-                    type: array
-                    items:
+            items:
+              type: object
+              properties:
+                geometry:
+                  description: A GeoJSON formated geometry field.
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    coordinates:
                       type: array
-                      example: [longitude,latitude]
+                      items:
+                        type: array
+                        example: [longitude,latitude]
 
-              description:
-                type: string
-                example: Ocean Lakes Campground
-              site_type:
-                type: string
-                example: Water Quality
-              site_name:
-                type: string
-                example: WAC-029
-              Water Quality:
-                type: object
-                properties:
-                  issues_advisories:
-                    type: boolean
-                  under_advisory:
-                    type: boolean
-                  current_advisory_text:
-                    type: string
-                  nowcasts:
-                    type: object
-                    properties:
-                      date:
-                        type: string
-                        format: YYYY-MM-DD HH:MM:SS
-                      level:
-                        type: string
-                      hours_data_valid:
-                        type: integer
-                  advisory:
-                    type: object
-                    properties:
-                      date:
-                        type: string
-                        format: YYYY-MM-DD HH:MM:SS
-                      value:
-                        type: float
-                      hours_data_valid:
-                        type: integer
-              Shellfish:
-                type: object
-                properties:
-                  date:
-                    type: string
-                    format: YYYY-MM-DD HH:MM:SS
-                  value:
-                    type: boolean
-                  hours_data_valid:
-                    type: integer
+                description:
+                  type: string
+                  example: Ocean Lakes Campground
+                site_type:
+                  type: string
+                  example: Water Quality
+                site_name:
+                  type: string
+                  example: WAC-029
+                Water Quality:
+                  type: object
+                  properties:
+                    issues_advisories:
+                      type: boolean
+                    under_advisory:
+                      type: boolean
+                    current_advisory_text:
+                      type: string
+                    nowcasts:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: YYYY-MM-DD HH:MM:SS
+                        level:
+                          type: string
+                        hours_data_valid:
+                          type: integer
+                    advisory:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: YYYY-MM-DD HH:MM:SS
+                        value:
+                          type: float
+                        hours_data_valid:
+                          type: integer
+                Shellfish:
+                  type: object
+                  properties:
+                    date:
+                      type: string
+                      format: YYYY-MM-DD HH:MM:SS
+                    value:
+                      type: boolean
+                    hours_data_valid:
+                      type: integer
 
 
 # Added by API Auto Mocking Plugin
