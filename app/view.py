@@ -8,11 +8,11 @@ from flask_admin import helpers, expose
 from flask_security import Security, SQLAlchemyUserDatastore, \
     login_required, current_user
 from sqlalchemy import exc
+import requests
 import time
 import json
 import geojson
 from datetime import datetime
-from collections import OrderedDict
 from wtforms import form, fields, validators
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import exc
@@ -1697,6 +1697,29 @@ class CollectionProgramInfoAPI(BaseAPI):
       ret_code = 200
     except Exception as e:
       results = self.json_error_response(501, "Error querying Water Quality Program info.")
+      current_app.logger.exception(e)
+
+    return (results, ret_code, {'Content-Type': 'application/json'})
+
+class EPAUVIndex(BaseAPI):
+  def get(self, sitename=None):
+    start_time = time.time()
+    current_app.logger.debug('IP: %s WaterQualityProgramAPI get for %s.' % (request.remote_addr, sitename))
+    ret_code = 404
+    results = {}
+    try:
+      url = None
+      if 'post_code' in request.args:
+        url = "https://enviro.epa.gov/enviro/efservice/getEnvirofactsUVHOURLY/ZIP/{post_code}/json".format(post_code=request.args['post_code'])
+      if url:
+        req = requests.get(url)
+        if req.status_code == 200:
+          results = req.text
+          ret_code = 200
+        else:
+          results = self.json_error_response(404, 'Unable to retrieve UV Index data')
+          ret_code = 404
+    except Exception as e:
       current_app.logger.exception(e)
 
     return (results, ret_code, {'Content-Type': 'application/json'})

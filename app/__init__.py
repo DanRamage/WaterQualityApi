@@ -104,7 +104,8 @@ def build_url_rules(app):
     MaintenanceMode, \
     SitesDataAPI, \
     SiteBacteriaDataAPI, \
-    CollectionProgramInfoAPI
+    CollectionProgramInfoAPI, \
+    EPAUVIndex
 
   #Page rules
   app.add_url_rule('/', view_func=ShowIntroPage.as_view('htb_intro'))
@@ -113,6 +114,8 @@ def build_url_rules(app):
   app.add_url_rule('/api/v1/<string:sitename>/sites', view_func=SitesDataAPI.as_view('sites_data_view'), methods=['GET'])
   app.add_url_rule('/api/v1/<string:sitename>/<string:site>/bacteria', view_func=SiteBacteriaDataAPI.as_view('site_bacteria_data'), methods=['GET'])
   app.add_url_rule('/api/v1/<string:sitename>/collectionprograminfo', view_func=CollectionProgramInfoAPI.as_view('collection_program_info'), methods=['GET'])
+  app.add_url_rule('/api/v1/epa_uv_index', view_func=EPAUVIndex.as_view('epa_uv_index'), methods=['GET'])
+
   #API Help Page
   @app.route('/api/v1/docs')
   def swagger_ui():
