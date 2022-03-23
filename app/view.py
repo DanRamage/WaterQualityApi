@@ -1408,6 +1408,10 @@ class SitesDataAPI(BaseAPI):
             'description': site_rec.description,
             'site_type': site_type,
             'site_name': site_rec.site_name,
+            'city': site_rec.city,
+            'post_code': site_rec.post_code,
+            'state_code': site_rec.state_abbreviation,
+            'county': site_rec.county
             }
           #Default sites are water quality sites, so we will check the predicition and advisory data and add to our response.
           if site_type == 'Water Quality':

@@ -141,6 +141,10 @@ class Sample_Site(db.Model):
 
   epa_id = db.Column(db.String(32), nullable=True)
   county = db.Column(db.String(32), nullable=True)
+  city = db.Column(db.String(16), nullable=True)
+  post_code = db.Column(db.String(12), nullable=True)
+  state_abbreviation = db.Column(db.String(2), nullable=True)
+
   # Some stations may measure water quality but can't issue a swim advisory.
   issues_advisories = db.Column(db.Boolean, nullable=True)
   #Station currently has an advisory on going.This is normally taken care of in the prediction engine, but when we have popup

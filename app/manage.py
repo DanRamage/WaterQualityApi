@@ -4,7 +4,7 @@ Load the python venv(source /path/to/python/venv/bin/activate
 export FLASK_APP=<fullpathto>/manage.py
 """
 import sys
-sys.path.append('../../commonfiles/python')
+sys.path.append('../commonfiles/python')
 import os
 import click
 from flask import Flask, current_app, redirect, url_for, request
@@ -14,11 +14,12 @@ from logging import Formatter
 import time
 from app import db
 from config import *
-from wq_models import Project_Area, Sample_Site, Boundary, Site_Extent, Sample_Site_Data
+from .wq_models import Project_Area, Sample_Site, Boundary, Site_Extent, Sample_Site_Data
 from datetime import datetime
 from shapely.wkb import loads as wkb_loads
-from wq_sites import wq_sample_sites
+#from wq_sites import wq_sample_sites
 import json
+import requests
 
 app = Flask(__name__)
 db.app = app
@@ -41,7 +42,7 @@ def init_logging(app):
 
 
 
-@app.cli.command()
+@app.cli.command('build_sites')
 @click.option('--params', nargs=2)
 def build_sites(params):
   start_time = time.time()
@@ -222,3 +223,60 @@ def import_sample_data(params):
     current_app.logger.exception(e)
 
   current_app.logger.debug("import_sample_data finished in %f seconds." % (time.time() - start_time))
+
+
+#reverse_geocode_sites --params results_file
+#This will loop through all the sites and reverse geocode them. This is useful so we can have the zipcode, city, state info
+#for sites.
+@app.cli.command('reverse_geocode_sites')
+@click.option('--params', nargs=1)
+def reverse_geocode_sites(params):
+  api_key = '5465cd37823048e9952b31a613539fe5'
+  URL = 'https://api.geoapify.com/v1/geocode/reverse?lat={latitude}4&lon={longitude}&api_key={api_key}'
+  start_time = time.time()
+  init_logging(app)
+  results_file = params
+  current_app.logger.debug("reverse_geocode_sites started file: %s" % (results_file))
+  try:
+      sample_sites = db.session.query(Sample_Site) \
+        .join(Project_Area, Project_Area.id == Sample_Site.project_site_id)\
+        .order_by(Project_Area.area_name)\
+        .all()
+  except Exception as e:
+    current_app.logger.exception(e)
+  else:
+    try:
+      with open(results_file, "w") as geocode_file:
+        geo_data = []
+        state = None
+        previous_postcode = None
+        for site in sample_sites:
+          current_app.logger.debug("Reverse Geocode query for site: {site_name}".format(site_name=site.site_name))
+          try:
+            url = URL.format(latitude=site.latitude, longitude=site.longitude, api_key=api_key)
+            req = requests.get(url)
+            if req.status_code == 200:
+              geocode = req.json()
+              geo_data.append(geocode)
+              site.state_abbreviation = geocode['features'][0]['properties']['state_code']
+              site.county = geocode['features'][0]['properties']['county']
+              site.city = geocode['features'][0]['properties']['city']
+              if 'postcode' in geocode['features'][0]['properties']:
+                site.post_code = geocode['features'][0]['properties']['postcode']
+                previous_postcode = site.post_code
+              else:
+                if state == site.state_abbreviation:
+                  current_app.logger.error("Postcode not available, using previous.")
+                  site.post_code = previous_postcode
+                else:
+                  current_app.logger.error("Postcode not available, unable to set.")
+
+              state = site.state_abbreviation
+              db.session.commit()
+            else:
+              current_app.logger.error("Request failed. Code: {req_code} Message: {message}".format(req_code=req.status_code, message=req.text))
+          except Exception as e:
+            current_app.logger.exception(e)
+        json.dump(geo_data, geocode_file)
+    except (Exception, IOError) as e:
+      current_app.logger.exception(e)
