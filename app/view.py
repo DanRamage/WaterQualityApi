@@ -1017,8 +1017,8 @@ class sample_site_view(base_view):
   """
   View for the Sample_Site table.
   """
-  column_list = ['project_site', 'site_name', 'site_type', 'latitude', 'longitude', 'description', 'epa_id', 'county', 'issues_advisories', 'has_current_advisory', 'advisory_text', 'boundaries', 'temporary_site', 'site_data', 'row_entry_date', 'row_update_date']
-  form_columns = ['project_site', 'site_name', 'site_type', 'latitude', 'longitude', 'description', 'epa_id', 'county', 'site_data','issues_advisories', 'has_current_advisory', 'advisory_text', 'boundaries', 'temporary_site']
+  column_list = ['project_site', 'site_name', 'site_type', 'latitude', 'longitude', 'description', 'epa_id', 'city', 'county', 'post_code', 'state_abbreviation', 'issues_advisories', 'has_current_advisory', 'advisory_text', 'boundaries', 'temporary_site', 'site_data', 'row_entry_date', 'row_update_date']
+  form_columns = ['project_site', 'site_name', 'site_type', 'latitude', 'longitude', 'description', 'epa_id', 'city', 'county', 'post_code', 'state_abbreviation', 'site_data','issues_advisories', 'has_current_advisory', 'advisory_text', 'boundaries', 'temporary_site']
   column_filters = ['project_site']
 
   def on_model_change(self, form, model, is_created):
@@ -1702,6 +1702,10 @@ class CollectionProgramInfoAPI(BaseAPI):
     return (results, ret_code, {'Content-Type': 'application/json'})
 
 class EPAUVIndex(BaseAPI):
+  """
+  This is our proxy to the EPA Rest request. The EPA site did not seem to allow CORS so our request kept
+  getting denied.
+  """
   def get(self, sitename=None):
     start_time = time.time()
     current_app.logger.debug('IP: %s WaterQualityProgramAPI get for %s.' % (request.remote_addr, sitename))
@@ -1712,14 +1716,16 @@ class EPAUVIndex(BaseAPI):
       if 'post_code' in request.args:
         url = "https://enviro.epa.gov/enviro/efservice/getEnvirofactsUVHOURLY/ZIP/{post_code}/json".format(post_code=request.args['post_code'])
       if url:
+        current_app.logger.debug("IP: %s EPAUVIndex querying: %s" % (request.remote_addr, url))
         req = requests.get(url)
         if req.status_code == 200:
           results = req.text
           ret_code = 200
         else:
-          results = self.json_error_response(404, 'Unable to retrieve UV Index data')
+          results = self.json_error_response(req.status_code, req.text)
           ret_code = 404
     except Exception as e:
+      results = self.json_error_response(501, "Error querying the EPA IV Index data.")
       current_app.logger.exception(e)
 
     return (results, ret_code, {'Content-Type': 'application/json'})
