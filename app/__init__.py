@@ -58,7 +58,8 @@ def build_flask_admin(app):
     sample_site_data_view, \
     site_type_view, \
     collection_program_info, \
-    collection_program_type
+    collection_program_type, \
+    beach_ambassador_sites
 
   from .admin_models import User, Role
   from .wq_models import Project_Area, \
@@ -72,7 +73,8 @@ def build_flask_admin(app):
     Sample_Site_Data,\
     Site_Type, \
     Collection_Program_Info, \
-    Collection_Program_Type
+    Collection_Program_Type, \
+    BeachAmbassador
 
   login_manager.init_app(app)
   # Create admin
@@ -94,6 +96,7 @@ def build_flask_admin(app):
   admin.add_view(sample_site_data_view(Sample_Site_Data, db.session, name="Site Data"))
   admin.add_view(collection_program_info(Collection_Program_Info, db.session, name="Data Collection Programs"))
   admin.add_view(collection_program_type(Collection_Program_Type, db.session, name="Collection Program Types"))
+  admin.add_view(beach_ambassador_sites(BeachAmbassador, db.session, name="Beach Ambassador Sites"))
 
   admin.add_view(popup_site_view(Sample_Site, db.session, name="Popup Site", endpoint="popup_site_view"))
 
@@ -105,7 +108,8 @@ def build_url_rules(app):
     SitesDataAPI, \
     SiteBacteriaDataAPI, \
     CollectionProgramInfoAPI, \
-    EPAUVIndex
+    EPAUVIndex,\
+    BCRSQuery
 
   #Page rules
   app.add_url_rule('/', view_func=ShowIntroPage.as_view('htb_intro'))
@@ -115,6 +119,7 @@ def build_url_rules(app):
   app.add_url_rule('/api/v1/<string:sitename>/<string:site>/bacteria', view_func=SiteBacteriaDataAPI.as_view('site_bacteria_data'), methods=['GET'])
   app.add_url_rule('/api/v1/<string:sitename>/collectionprograminfo', view_func=CollectionProgramInfoAPI.as_view('collection_program_info'), methods=['GET'])
   app.add_url_rule('/api/v1/epa_uv_index', view_func=EPAUVIndex.as_view('epa_uv_index'), methods=['GET'])
+  app.add_url_rule('/api/v1/bcrs_sites', view_func=BCRSQuery.as_view('bcrs_query'), methods=['GET'])
 
   #API Help Page
   @app.route('/api/v1/docs')

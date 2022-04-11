@@ -213,3 +213,13 @@ class Site_Extent(db.Model):
   site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id))
   sample_site_name = db.relationship('Sample_Site', backref='site_extents', foreign_keys=[site_id])
 
+class BeachAmbassador(db.Model):
+  __table_name__ = 'beach_ambassador'
+  id = db.Column(db.Integer, primary_key=True)
+  row_entry_date = db.Column(db.String(32))
+  row_update_date = db.Column(db.String(32))
+
+  bcrs_id = db.Column(db.String(8))
+  sample_site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id))
+  sample_site_name = db.relationship('Sample_Site', backref='beach_ambassador', foreign_keys=[sample_site_id])
+  site_url = db.Column(db.String(2048))

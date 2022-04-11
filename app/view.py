@@ -32,7 +32,8 @@ from .wq_models import Project_Area, \
   Site_Type, \
   Collection_Program_Info, \
   Collection_Program_Info_Mapper, \
-  Collection_Program_Type
+  Collection_Program_Type, \
+  BeachAmbassador
 
 class SiteGeometry:
   def __init__(self, geom):
@@ -1066,6 +1067,11 @@ class collection_program_type(base_view):
   form_columns = ['program_type']
   column_filters = ['program_type']
 
+class beach_ambassador_sites(base_view):
+  column_list = ['id', 'bcrs_id', 'sample_site_name', 'site_url', 'row_entry_date', 'row_update_date']
+  form_columns = ['bcrs_id', 'sample_site_name', 'site_url', 'row_entry_date', 'row_update_date']
+  column_filters = ['bcrs_id', 'sample_site_name', 'site_url', 'row_entry_date', 'row_update_date']
+
 
 class wktTextField(fields.TextAreaField):
   def process_data(self, value):
@@ -1358,6 +1364,19 @@ class SitesDataAPI(BaseAPI):
       current_app.logger.exception(e)
     return None
 
+  def get_bcrs_site_properties(self, siteid):
+    properties = None
+    try:
+      bcrs_site = db.session.query(BeachAmbassador)\
+      .filter(BeachAmbassador.sample_site_id == siteid)\
+      .one()
+      properties = {
+        'bcrs_id': bcrs_site.bcrs_id,
+        'site_url': bcrs_site.site_url
+      }
+    except Exception as e:
+      current_app.logger.exception(e)
+    return properties
   def get(self, sitename):
     start_time = time.time()
     current_app.logger.debug('IP: %s SiteDataAPI get for site: %s request args: %s' % (request.remote_addr, sitename, str(request.args)))
@@ -1464,6 +1483,10 @@ class SitesDataAPI(BaseAPI):
               properties[site_type] = property
           elif site_type == 'Camera Site':
             property = self.create_camera_properties(site_rec)
+            if property is not None:
+              properties[site_type] = property
+          elif site_type == 'Beach Ambassador':
+            property = self.get_bcrs_site_properties(site_rec.id)
             if property is not None:
               properties[site_type] = property
 
@@ -1729,6 +1752,51 @@ class EPAUVIndex(BaseAPI):
       current_app.logger.exception(e)
 
     return (results, ret_code, {'Content-Type': 'application/json'})
+
+class BCRSQuery(BaseAPI):
+  def get(self, sitename=None):
+    start_time = time.time()
+    current_app.logger.debug('IP: %s WaterQualityProgramAPI get for %s.' % (request.remote_addr, sitename))
+    ret_code = 404
+    results = {}
+    try:
+      #url = 'https://api.visitbeaches.org/graphql?"{"operationName":"GetMappedReports","variables":{"layerId":"2","bounds":{"northEast":{"latitude":36.14066444947063,"longitude":-75.61921185747138},"southWest":{"latitude":20.140664449470627,"longitude":-91.61921185747138}}},"query":"query GetMappedReports($bounds: BoundsInput!, $layerId: ID!) {\n  beaches(orderBy: [{column: NAME, order: ASC}]) {\n    ...Beach\n    __typename\n  }\n  clusteredLayerReports(layerId: $layerId, bounds: $bounds) {\n    clusters {\n      ...Cluster\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment Beach on Beach {\n  id\n  name\n  website\n  logo\n  latitude\n  longitude\n  amenities {\n    description\n    link\n    __typename\n  }\n  imageAttachments(orderBy: [{column: CREATED_AT, order: DESC}]) {\n    ...ImageAttachment\n    __typename\n  }\n  city {\n    ...City\n    __typename\n  }\n  location\n  __typename\n}\n\nfragment City on City {\n  name\n  latitude\n  longitude\n  county {\n    ...County\n    __typename\n  }\n  state {\n    ...State\n    __typename\n  }\n  __typename\n}\n\nfragment County on County {\n  name\n  latitude\n  longitude\n  state {\n    ...State\n    __typename\n  }\n  __typename\n}\n\nfragment State on State {\n  name\n  abbreviation\n  latitude\n  longitude\n  __typename\n}\n\nfragment ImageAttachment on ImageAttachment {\n  originalUrl\n  previewUrl\n  thumbnailUrl\n  __typename\n}\n\nfragment Cluster on Cluster {\n  key\n  center {\n    latitude\n    longitude\n    __typename\n  }\n  reports {\n    ...Report\n    __typename\n  }\n  __typename\n}\n\nfragment Report on Report {\n  id\n  user {\n    ...User\n    __typename\n  }\n  agree\n  disagree\n  createdAt\n  latitude\n  longitude\n  reportParameters {\n    ...ReportParameter\n    __typename\n  }\n  reportableType\n  reportableId\n  __typename\n}\n\nfragment ReportParameter on ReportParameter {\n  parameter {\n    ...Parameter\n    __typename\n  }\n  parameterValues {\n    ...ParameterValue\n    __typename\n  }\n  value\n  display\n  __typename\n}\n\nfragment Parameter on Parameter {\n  id\n  name\n  icon\n  prompt\n  description\n  type\n  rangeMin\n  rangeMax\n  unit\n  first\n  parameterCategory {\n    ...ParameterCategory\n    __typename\n  }\n  parameterValues {\n    ...ParameterValue\n    __typename\n  }\n  __typename\n}\n\nfragment ParameterCategory on ParameterCategory {\n  id\n  name\n  icon\n  description\n  slug\n  order\n  __typename\n}\n\nfragment ParameterValue on ParameterValue {\n  id\n  name\n  description\n  value\n  imagePath\n  icon\n  __typename\n}\n\nfragment User on User {\n  id\n  name\n  email\n  alert {\n    ...Alert\n    __typename\n  }\n  __typename\n}\n\nfragment Alert on Alert {\n  id\n  uuid\n  email\n  beaches {\n    ...Beach\n    __typename\n  }\n  __typename\n}\n"}"'
+
+      url = "https://api.visitbeaches.org/graphql"
+      params = {
+        'operationName': 'GetMappedReports',
+        'variables': {
+             "bounds": {
+               "northEast": {
+                 "latitude": 27.547242,
+                 "longitude": -82.524490
+               },
+               "southWest": {
+                 "latitude": 27.255850,
+                 "longitude": -82.814941
+               }
+             },
+             "layerId": "2"
+           },
+        "query": """query GetMappedReports($bounds: BoundsInput!, $layerId: ID!) {\n  beaches(orderBy: [{column: NAME, order: ASC}]) {\n    ...Beach\n    __typename\n  }\n  clusteredLayerReports(layerId: $layerId, bounds: $bounds) {\n    clusters {\n      ...Cluster\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment Beach on Beach {\n  id\n  name\n  website\n  logo\n  latitude\n  longitude\n  amenities {\n    description\n    link\n    __typename\n  }\n  imageAttachments(orderBy: [{column: CREATED_AT, order: DESC}]) {\n    ...ImageAttachment\n    __typename\n  }\n  city {\n    ...City\n    __typename\n  }\n  location\n  __typename\n}\n\nfragment City on City {\n  name\n  latitude\n  longitude\n  county {\n    ...County\n    __typename\n  }\n  state {\n    ...State\n    __typename\n  }\n  __typename\n}\n\nfragment County on County {\n  name\n  latitude\n  longitude\n  state {\n    ...State\n    __typename\n  }\n  __typename\n}\n\nfragment State on State {\n  name\n  abbreviation\n  latitude\n  longitude\n  __typename\n}\n\nfragment ImageAttachment on ImageAttachment {\n  originalUrl\n  previewUrl\n  thumbnailUrl\n  __typename\n}\n\nfragment Cluster on Cluster {\n  key\n  center {\n    latitude\n    longitude\n    __typename\n  }\n  reports {\n    ...Report\n    __typename\n  }\n  __typename\n}\n\nfragment Report on Report {\n  id\n  user {\n    ...User\n    __typename\n  }\n  agree\n  disagree\n  createdAt\n  latitude\n  longitude\n  reportParameters {\n    ...ReportParameter\n    __typename\n  }\n  reportableType\n  reportableId\n  __typename\n}\n\nfragment ReportParameter on ReportParameter {\n  parameter {\n    ...Parameter\n    __typename\n  }\n  parameterValues {\n    ...ParameterValue\n    __typename\n  }\n  value\n  display\n  __typename\n}\n\nfragment Parameter on Parameter {\n  id\n  name\n  icon\n  prompt\n  description\n  type\n  rangeMin\n  rangeMax\n  unit\n  first\n  parameterCategory {\n    ...ParameterCategory\n    __typename\n  }\n  parameterValues {\n    ...ParameterValue\n    __typename\n  }\n  __typename\n}\n\nfragment ParameterCategory on ParameterCategory {\n  id\n  name\n  icon\n  description\n  slug\n  order\n  __typename\n}\n\nfragment ParameterValue on ParameterValue {\n  id\n  name\n  description\n  value\n  imagePath\n  icon\n  __typename\n}\n\nfragment User on User {\n  id\n  name\n  email\n  alert {\n    ...Alert\n    __typename\n  }\n  __typename\n}\n\nfragment Alert on Alert {\n  id\n  uuid\n  email\n  beaches {\n    ...Beach\n    __typename\n  }\n  __typename\n}\n"""
+      }
+
+      if url:
+        #current_app.logger.debug("IP: %s BCRSQuery querying: %s" % (request.remote_addr, url))
+        req = requests.post(url, json=params)
+        current_app.logger.debug("IP: %s BCRSQuery querying URL: %s Headers: %s" % (request.remote_addr, req.url, req.headers))
+        if req.status_code == 200:
+          results = req.text
+          ret_code = 200
+        else:
+          results = self.json_error_response(req.status_code, req.text)
+          ret_code = 404
+    except Exception as e:
+      results = self.json_error_response(501, "Error querying the EPA IV Index data.")
+      current_app.logger.exception(e)
+
+    return (results, ret_code, {'Content-Type': 'application/json'})
+
 
 def build_json_error(error_code, error_message):
   json_error = {}
