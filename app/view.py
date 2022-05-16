@@ -1711,7 +1711,7 @@ class CollectionProgramInfoAPI(BaseAPI):
 
       if 'program_type' in request.args:
         program_type = request.args['program_type']
-        program_info.join(Collection_Program_Type, Collection_Program_Type.id == Collection_Program_Info.program_type_id) \
+        program_info = program_info.join(Collection_Program_Type, Collection_Program_Type.id == Collection_Program_Info.program_type_id) \
           .filter(Collection_Program_Type.program_type == program_type)
 
 
