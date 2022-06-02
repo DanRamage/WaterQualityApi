@@ -24,6 +24,13 @@ import requests
 #import pandas as pd
 from shapely.geometry import Point, Polygon, box
 
+#from sqlalchemy import MetaData
+#from sqlalchemy import create_engine
+#from sqlalchemy.orm import sessionmaker
+
+#import mysql.connector
+#from mysql.connector.constants import ClientFlag
+
 app = Flask(__name__)
 db.app = app
 db.init_app(app)
@@ -286,11 +293,17 @@ def reverse_geocode_sites(params):
 
 
 @app.cli.command('get_bcrs_sites')
-@click.option('--params', nargs=1)
+@click.option('--params', nargs=2)
 def get_bcrs_sites(params):
   start_time = time.time()
+  location = params[0]
+  bbox = params[1]
+
+  ll, ur = bbox.split(',')
+  ll = ll.split(' ')
+  ur = ur.split(' ')
+
   init_logging(app)
-  bounds = params.split(';')
   results_file = params
   current_app.logger.debug("get_bcrs_sites started.")
   try:
@@ -300,12 +313,12 @@ def get_bcrs_sites(params):
       'variables': {
         "bounds": {
           "northEast": {
-            "latitude": 27.547242,
-            "longitude": -82.524490
+            "latitude": float(ur[0]),
+            "longitude": float(ur[1])
           },
           "southWest": {
-            "latitude": 27.255850,
-            "longitude": -82.814941
+            "latitude": float(ll[0]),
+            "longitude": float(ll[1])
           }
         },
         "layerId": "2"
@@ -316,11 +329,9 @@ def get_bcrs_sites(params):
     if url:
       # current_app.logger.debug("IP: %s BCRSQuery querying: %s" % (request.remote_addr, url))
       req = requests.post(url, json=params)
-      min_xy = bounds[0].split(',')
-      max_xy = bounds[1].split(',')
-      bbox = box(float(min_xy[1]), float(min_xy[0]), float(max_xy[1]), float(max_xy[0]))
+      bbox = box(float(ll[1]), float(ll[0]), float(ur[1]), float(ur[0]))
       proj_area = db.session.query(Project_Area)\
-        .filter(Project_Area.area_name=='sarasota')\
+        .filter(Project_Area.area_name==location)\
         .all()
       site_type = db.session.query(Site_Type)\
         .filter(Site_Type.name == 'Beach Ambassador')\
@@ -329,8 +340,14 @@ def get_bcrs_sites(params):
         row_entry_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         json_data = req.json()
         for beach in json_data['data']['beaches']:
+          #Check if the site exists.
           site_point = Point(beach['longitude'], beach['latitude'])
           if bbox.contains(site_point):
+            try:
+              site_rec = db.session.query(Sample_Site) \
+                .filter(Sample_Site.site_name == beach['name']).one()
+            except Exception as e:
+              current_app.logger.debug("Site: %s is not in database." % (beach['name']))
             try:
               current_app.logger.debug("Station: %s in bbox." % (beach['name']))
               new_site = Sample_Site(row_entry_date=row_entry_date,
@@ -357,4 +374,97 @@ def get_bcrs_sites(params):
               current_app.logger.exception(e)
   except Exception as e:
     current_app.logger.exception(e)
+  return
+
+
+@app.cli.command('get_shellcast_sites')
+@click.option('--params', nargs=3)
+def get_shellcast_sites(params):
+  #from .ShellcastModels import NCDMFLease
+  init_logging(app)
+  location = params[0]
+  url = params[1]
+  bbox = params[2]
+  '''
+  Killl devil hills:
+  LL: -75.851530, 35.838785
+  UR: -75.589265,  36.145002
+  '''
+  '''
+  user_name = params[0]
+  user_pwd = params[1]
+  db_ip_addr = params[2]
+  database_name = params[3]
+  config = {
+    'user': user_name,
+    'password': user_pwd,
+    'host': db_ip_addr,
+    'database': db_ip_addr
+  }
+  '''
+  try:
+    ll, ur = bbox.split(',')
+    ll = ll.split(' ')
+    ur = ur.split(' ')
+    location_bbox = box(float(ll[1]), float(ll[0]), float(ur[1]), float(ur[0]))
+
+    current_app.logger.debug("Querying url: %s" % (url))
+    req = requests.get(url)
+    if req.status_code == 200:
+      proj_area = db.session.query(Project_Area)\
+        .filter(Project_Area.area_name==location)\
+        .all()
+      site_type = db.session.query(Site_Type)\
+        .filter(Site_Type.name == 'Shellcast')\
+        .all()
+
+      row_entry_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+      json_data = req.json()
+      for cmu in json_data['features']:
+        geometry = cmu['geometry']
+        cmu_poly = None
+        if geometry['type'] == 'MultiPolygon':
+          cmu_poly = Polygon(geometry['coordinates'][0][0])
+        if cmu_poly is not None and cmu_poly.intersects(location_bbox):
+          props = cmu['properties']
+          current_app.logger.debug("CMU: %s intersects %s bbox." % (props['cmu_name'], location))
+          center_pt = cmu_poly.centroid.coords[0]
+          new_site = Sample_Site(row_entry_date=row_entry_date,
+                                 site_name=props['cmu_name'],
+                                 description=props['cmu_name'],
+                                 latitude=center_pt[1],
+                                 longitude=center_pt[0],
+                                 project_site_id=proj_area[0].id,
+                                 site_type_id=site_type[0].id,
+                                 city='',
+                                 county='',
+                                 state_abbreviation='',
+                                 temporary_site=False)
+          current_app.logger.debug("Adding site: %s" % (new_site.site_name))
+          db.session.add(new_site)
+          db.session.commit()
+
+    else:
+      current_app.logger.error("Unable to GET url: %s, status code: %d" % (url, req.status_code))
+    '''
+    current_app.logger.debug("Connecting to database.")
+    #mysql+mysqlconnector://<user>:<password>@<host>[:<port>]/<dbname>
+    connect_string = "mysql+mysqlconnector://{user}:{password}@{host}:{port}/{dbname}".format(uesr=user_name,
+                                                                                              password=user_pwd,
+                                                                                              host=db_ip_addr,
+                                                                                              dbname=db_ip_addr)
+
+    dbEngine = create_engine(connect_string)
+    # metadata object is used to keep information such as datatypes for our table's columns.
+    metadata = MetaData()
+    metadata.bind = dbEngine
+    Session = sessionmaker(bind=dbEngine)
+    session = Session()
+    connection = dbEngine.connect()
+
+    #cnxn = mysql.connector.connect(**config)
+    '''
+  except Exception as e:
+    current_app.logger.exception(e)
+
   return
