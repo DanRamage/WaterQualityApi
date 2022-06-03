@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /usr/local/virtualenv/pyenv-3.8.10/activate
+source /usr/local/virtualenv/pyenv-3.8.10/bin/activate
 
 cd /var/www/devapihowsthebeach/app
 
