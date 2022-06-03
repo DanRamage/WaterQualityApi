@@ -329,49 +329,56 @@ def get_bcrs_sites(params):
     if url:
       # current_app.logger.debug("IP: %s BCRSQuery querying: %s" % (request.remote_addr, url))
       req = requests.post(url, json=params)
-      bbox = box(float(ll[1]), float(ll[0]), float(ur[1]), float(ur[0]))
-      proj_area = db.session.query(Project_Area)\
-        .filter(Project_Area.area_name==location)\
-        .all()
-      site_type = db.session.query(Site_Type)\
-        .filter(Site_Type.name == 'Beach Ambassador')\
-        .all()
       if req.status_code == 200:
+        bbox = box(float(ll[1]), float(ll[0]), float(ur[1]), float(ur[0]))
+        proj_area = db.session.query(Project_Area) \
+          .filter(Project_Area.area_name == location) \
+          .one()
+        site_type = db.session.query(Site_Type) \
+          .filter(Site_Type.name == 'Beach Ambassador') \
+          .one()
+
         row_entry_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         json_data = req.json()
         for beach in json_data['data']['beaches']:
           #Check if the site exists.
           site_point = Point(beach['longitude'], beach['latitude'])
           if bbox.contains(site_point):
+            add_site = False
             try:
+              current_app.logger.debug("Station: %s in bbox, checking if it already exists in database." % (beach['name']))
+
               site_rec = db.session.query(Sample_Site) \
-                .filter(Sample_Site.site_name == beach['name']).one()
+                .filter(Sample_Site.site_name == beach['name'])\
+                .filter(Sample_Site.project_site_id == proj_area.id).one()
+              current_app.logger.debug("Station: %s already exists in database, not adding." % (beach['name']))
             except Exception as e:
               current_app.logger.debug("Site: %s is not in database." % (beach['name']))
-            try:
-              current_app.logger.debug("Station: %s in bbox." % (beach['name']))
-              new_site = Sample_Site(row_entry_date=row_entry_date,
-                                     site_name=beach['name'],
-                                     description=beach['name'],
-                                     latitude=beach['latitude'],
-                                     longitude=beach['longitude'],
-                                     project_site_id=proj_area[0].id,
-                                     site_type_id=site_type[0].id,
-                                     city=beach['city']['name'],
-                                     county=beach['city']['county']['name'],
-                                     state_abbreviation=beach['city']['state']['abbreviation'],
-                                     temporary_site=False)
-              db.session.add(new_site)
-              db.session.commit()
-              site_url = "https://visitbeaches.org/beach/{site_id}".format(site_id=beach['id'])
-              bcrs_site = BeachAmbassador(row_entry_date=row_entry_date,
-                                          bcrs_id=beach['id'],
-                                          site_url=site_url,
-                                          sample_site_id=new_site.id)
-              db.session.add(bcrs_site)
-              db.session.commit()
-            except Exception as e:
-              current_app.logger.exception(e)
+              add_site = True
+            if add_site:
+              try:
+                new_site = Sample_Site(row_entry_date=row_entry_date,
+                                       site_name=beach['name'],
+                                       description=beach['name'],
+                                       latitude=beach['latitude'],
+                                       longitude=beach['longitude'],
+                                       project_site_id=proj_area[0].id,
+                                       site_type_id=site_type[0].id,
+                                       city=beach['city']['name'],
+                                       county=beach['city']['county']['name'],
+                                       state_abbreviation=beach['city']['state']['abbreviation'],
+                                       temporary_site=False)
+                db.session.add(new_site)
+                db.session.commit()
+                site_url = "https://visitbeaches.org/beach/{site_id}".format(site_id=beach['id'])
+                bcrs_site = BeachAmbassador(row_entry_date=row_entry_date,
+                                            bcrs_id=beach['id'],
+                                            site_url=site_url,
+                                            sample_site_id=new_site.id)
+                db.session.add(bcrs_site)
+                db.session.commit()
+              except Exception as e:
+                current_app.logger.exception(e)
   except Exception as e:
     current_app.logger.exception(e)
   return
@@ -413,10 +420,10 @@ def get_shellcast_sites(params):
     if req.status_code == 200:
       proj_area = db.session.query(Project_Area)\
         .filter(Project_Area.area_name==location)\
-        .all()
+        .one()
       site_type = db.session.query(Site_Type)\
         .filter(Site_Type.name == 'Shellcast')\
-        .all()
+        .one()
 
       row_entry_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
       json_data = req.json()
@@ -428,21 +435,34 @@ def get_shellcast_sites(params):
         if cmu_poly is not None and cmu_poly.intersects(location_bbox):
           props = cmu['properties']
           current_app.logger.debug("CMU: %s intersects %s bbox." % (props['cmu_name'], location))
-          center_pt = cmu_poly.centroid.coords[0]
-          new_site = Sample_Site(row_entry_date=row_entry_date,
-                                 site_name=props['cmu_name'],
-                                 description=props['cmu_name'],
-                                 latitude=center_pt[1],
-                                 longitude=center_pt[0],
-                                 project_site_id=proj_area[0].id,
-                                 site_type_id=site_type[0].id,
-                                 city='',
-                                 county='',
-                                 state_abbreviation='',
-                                 temporary_site=False)
-          current_app.logger.debug("Adding site: %s" % (new_site.site_name))
-          db.session.add(new_site)
-          db.session.commit()
+          add_site = False
+          try:
+            current_app.logger.debug(
+              "Station: %s in bbox, checking if it already exists in database." % (props['cmu_name']))
+
+            site_rec = db.session.query(Sample_Site) \
+              .filter(Sample_Site.site_name == props['cmu_name']) \
+              .filter(Sample_Site.project_site_id == proj_area.id).one()
+            current_app.logger.debug("Station: %s already exists in database, not adding." % (props['cmu_name']))
+          except Exception as e:
+            current_app.logger.debug("Site: %s is not in database." % (props['cmu_name']))
+            add_site = True
+          if add_site:
+            center_pt = cmu_poly.centroid.coords[0]
+            new_site = Sample_Site(row_entry_date=row_entry_date,
+                                   site_name=props['cmu_name'],
+                                   description=props['cmu_name'],
+                                   latitude=center_pt[1],
+                                   longitude=center_pt[0],
+                                   project_site_id=proj_area[0].id,
+                                   site_type_id=site_type[0].id,
+                                   city='',
+                                   county='',
+                                   state_abbreviation='',
+                                   temporary_site=False)
+            current_app.logger.debug("Adding site: %s" % (new_site.site_name))
+            db.session.add(new_site)
+            db.session.commit()
 
     else:
       current_app.logger.error("Unable to GET url: %s, status code: %d" % (url, req.status_code))
