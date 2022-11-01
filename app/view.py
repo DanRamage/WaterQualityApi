@@ -35,6 +35,7 @@ from .wq_models import Project_Area, \
   Collection_Program_Type, \
   BeachAmbassador
 
+
 class SiteGeometry:
   def __init__(self, geom):
     self._geometry = geom
