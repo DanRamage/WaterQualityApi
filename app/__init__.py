@@ -59,7 +59,8 @@ def build_flask_admin(app):
     site_type_view, \
     collection_program_info, \
     collection_program_type, \
-    beach_ambassador_sites
+    beach_ambassador_sites, \
+    webcoos_sites
 
   from .admin_models import User, Role
   from .wq_models import Project_Area, \
@@ -74,7 +75,8 @@ def build_flask_admin(app):
     Site_Type, \
     Collection_Program_Info, \
     Collection_Program_Type, \
-    BeachAmbassador
+    BeachAmbassador, \
+    WebCOOS
 
   login_manager.init_app(app)
   # Create admin
@@ -97,6 +99,8 @@ def build_flask_admin(app):
   admin.add_view(collection_program_info(Collection_Program_Info, db.session, name="Data Collection Programs"))
   admin.add_view(collection_program_type(Collection_Program_Type, db.session, name="Collection Program Types"))
   admin.add_view(beach_ambassador_sites(BeachAmbassador, db.session, name="Beach Ambassador Sites"))
+  admin.add_view(webcoos_sites(WebCOOS, db.session, name="WebCOOS Sites"))
+
 
   admin.add_view(popup_site_view(Sample_Site, db.session, name="Popup Site", endpoint="popup_site_view"))
 

@@ -27,13 +27,12 @@ from .wq_models import Project_Area, \
   Advisory_Limits, \
   Sample_Site,\
   Sample_Site_Data,\
-  Site_Extent,\
-  Boundary, \
   Site_Type, \
   Collection_Program_Info, \
   Collection_Program_Info_Mapper, \
   Collection_Program_Type, \
-  BeachAmbassador
+  BeachAmbassador, \
+  WebCOOS
 
 
 class SiteGeometry:
@@ -1073,6 +1072,10 @@ class beach_ambassador_sites(base_view):
   form_columns = ['bcrs_id', 'sample_site_name', 'site_url', 'row_entry_date', 'row_update_date']
   column_filters = ['bcrs_id', 'sample_site_name', 'site_url', 'row_entry_date', 'row_update_date']
 
+class webcoos_sites(base_view):
+  column_list = ['id', 'webcoos_id', 'sample_site_name', 'site_url', 'row_entry_date', 'row_update_date']
+  form_columns = ['webcoos_id', 'sample_site_name', 'site_url', 'row_entry_date', 'row_update_date']
+  column_filters = ['webcoos_id', 'sample_site_name', 'site_url', 'row_entry_date', 'row_update_date']
 
 class wktTextField(fields.TextAreaField):
   def process_data(self, value):
@@ -1286,15 +1289,19 @@ class SitesDataAPI(BaseAPI):
       current_app.logger.exception(e)
     return None
 
-  def create_camera_properties(self, site_rec):
-    try:
+  def create_camera_properties(self, siteid):
+      properties = None
+      try:
+        camera_site = db.session.query(WebCOOS) \
+          .filter(WebCOOS.sample_site_id == siteid) \
+          .one()
         properties = {
-          'station': site_rec.site_name
+          'id': camera_site.webcoos_id,
+          'site_url': camera_site.site_url
         }
-        return properties
-    except Exception as e:
-      current_app.logger.exception(e)
-    return None
+      except Exception as e:
+        current_app.logger.exception(e)
+      return properties
 
   def create_rip_current_properties(self, sitename, ripcurrents_data, site_rec, data_timeout):
     try:
@@ -1476,14 +1483,8 @@ class SitesDataAPI(BaseAPI):
             property = self.create_shellfish_properties(shellfish_data, site_rec, data_timeout)
             if property is not None:
               properties[site_type] = property
-
-          elif site_type == 'Rip Current' and ripcurrents_data is not None:
-            data_timeout = SITE_TYPE_DATA_VALID_TIMEOUTS[site_type]
-            property = self.create_rip_current_properties(sitename, ripcurrents_data, site_rec, data_timeout)
-            if property is not None:
-              properties[site_type] = property
           elif site_type == 'Camera Site':
-            property = self.create_camera_properties(site_rec)
+            property = self.create_camera_properties(site_rec.id)
             if property is not None:
               properties[site_type] = property
           elif site_type == 'Beach Ambassador':

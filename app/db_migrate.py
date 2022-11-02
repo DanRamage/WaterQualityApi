@@ -263,6 +263,18 @@ class BeachAmbassador(db.Model):
   sample_site_name = db.relationship('Sample_Site', backref='beach_ambassador', foreign_keys=[sample_site_id])
   site_url = db.Column(db.String(2048))
 
+class WebCOOS(db.Model):
+  __table_name__ = 'webcoos'
+  id = db.Column(db.Integer, primary_key=True)
+  row_entry_date = db.Column(db.String(32))
+  row_update_date = db.Column(db.String(32))
+
+  webcoos_id = db.Column(db.String(64))
+  sample_site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id))
+  sample_site_name = db.relationship('Sample_Site', backref='webcoos', foreign_keys=[sample_site_id])
+  site_url = db.Column(db.String(2048))
+
+
 # Define models
 roles_users = db.Table(
     'roles_users',
