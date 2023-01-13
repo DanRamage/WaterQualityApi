@@ -66,6 +66,13 @@ if not PYCHARM_DEBUG:
           'url': 'https://www.floridaapdata.org/beach/response_beach.php'
         }
       },
+      'radioisland':
+        {
+          'prediction_file': '/home/xeniaprod/feeds/northcarolina/radioisland/Predictions.json',
+          'advisory_file': '/home/xeniaprod/feeds/northcarolina/radioisland/monitorstations/kdh_beach_advisories.json',
+          'stations_directory': '/home/xeniaprod/feeds/northcarolina/radioisland/monitorstations'
+        }
+
   }
 else:
   SITES_CONFIG = {
@@ -108,7 +115,13 @@ else:
         'advisory_file': '/Users/danramage/tmp/wq_feeds/fl_wq/monitorstations/beachAdvisoryResults.json',
         'stations_directory': '/Users/danramage/tmp/wq_feeds/feeds/fl_wq/monitorstations',
         'ripcurrents': '/Users/danramage/tmp/wq_feeds/sarasota/forecasts.json'
-  },
+    },
+    'radioisland':
+      {
+        'prediction_file': '/Users/danramage/tmp/wq_feeds/radioisland/Predictions.json',
+        'advisory_file': '/Users/danramage/tmp/wq_feeds/radioisland/monitorstations/kdh_beach_advisories.json',
+        'stations_directory': '/Users/danramage/tmp/wq_feeds/radioisland/monitorstations'
+      }
 
   }
 
