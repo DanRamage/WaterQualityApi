@@ -41,37 +41,37 @@ if not PYCHARM_DEBUG:
         'advisory_file': '/home/xeniaprod/feeds/fl_wq/monitorstations/beachAdvisoryResults.json',
         'stations_directory': '/home/xeniaprod/feeds/fl_wq/monitorstations',
         'ripcurrents': '/home/xeniaprod/feeds/fl_wq/nwsforecasts/forecasts.json'
-  },
-    'charleston':
-      {
-        'prediction_file': '/home/xeniaprod/feeds/charleston/Predictions.json',
-        'advisory_file': '/home/xeniaprod/feeds/charleston/monitorstations/beach_advisories.json',
-        'stations_directory': '/home/xeniaprod/feeds/charleston/monitorstations'
       },
-      'killdevilhills':
-      {
-        'prediction_file': '/home/xeniaprod/feeds/northcarolina/killdevilhills/Predictions.json',
-        'advisory_file': '/home/xeniaprod/feeds/northcarolina/killdevilhills/monitorstations/kdh_beach_advisories.json',
-        'stations_directory': '/home/xeniaprod/feeds/northcarolina/killdevilhills/monitorstations'
-      },
-    'follybeach':
-      {
-        'prediction_file': '/home/xeniaprod/feeds/follybeach/Predictions.json',
-        'advisory_file': '/home/xeniaprod/feeds/follybeach/monitorstations/beach_advisories.json',
-        'stations_directory': '/home/xeniaprod/feeds/follybeach/monitorstations',
-        'camera_statistics': '',
-        'shellfish_closures': '/home/xeniaprod/feeds/follybeach/shellfish/shellfish_closures.json',
-        'ripcurrents': '/home/xeniaprod/feeds/follybeach/ripcurrent/forecasts.json',
-        'camera_rest':  {
-          'url': 'https://www.floridaapdata.org/beach/response_beach.php'
-        }
-      },
-      'radioisland':
+      'charleston':
         {
-          'prediction_file': '/home/xeniaprod/feeds/northcarolina/radioisland/Predictions.json',
-          'advisory_file': '/home/xeniaprod/feeds/northcarolina/radioisland/monitorstations/kdh_beach_advisories.json',
-          'stations_directory': '/home/xeniaprod/feeds/northcarolina/radioisland/monitorstations'
-        }
+          'prediction_file': '/home/xeniaprod/feeds/charleston/Predictions.json',
+          'advisory_file': '/home/xeniaprod/feeds/charleston/monitorstations/beach_advisories.json',
+          'stations_directory': '/home/xeniaprod/feeds/charleston/monitorstations'
+        },
+        'killdevilhills':
+        {
+          'prediction_file': '/home/xeniaprod/feeds/northcarolina/killdevilhills/Predictions.json',
+          'advisory_file': '/home/xeniaprod/feeds/northcarolina/killdevilhills/monitorstations/kdh_beach_advisories.json',
+          'stations_directory': '/home/xeniaprod/feeds/northcarolina/killdevilhills/monitorstations'
+        },
+        'follybeach':
+        {
+          'prediction_file': '/home/xeniaprod/feeds/follybeach/Predictions.json',
+          'advisory_file': '/home/xeniaprod/feeds/follybeach/monitorstations/beach_advisories.json',
+          'stations_directory': '/home/xeniaprod/feeds/follybeach/monitorstations',
+          'camera_statistics': '',
+          'shellfish_closures': '/home/xeniaprod/feeds/follybeach/shellfish/shellfish_closures.json',
+          'ripcurrents': '/home/xeniaprod/feeds/follybeach/ripcurrent/forecasts.json',
+          'camera_rest':  {
+            'url': 'https://www.floridaapdata.org/beach/response_beach.php'
+          }
+        },
+        'radioisland':
+          {
+            'prediction_file': '/home/xeniaprod/feeds/northcarolina/radioisland/Predictions.json',
+            'advisory_file': '/home/xeniaprod/feeds/northcarolina/radioisland/monitorstations/radioisland_beach_advisories.json',
+            'stations_directory': '/home/xeniaprod/feeds/northcarolina/radioisland/monitorstations'
+          }
 
   }
 else:
@@ -88,40 +88,40 @@ else:
         'advisory_file': '/Users/danramage/tmp/wq_feeds/sc_mb/monitorstations/beachAdvisoryResults.json',
         'stations_directory': '/Users/danramage/tmp/wq_feeds/sc_mb/monitorstations'
       },
-    'charleston':
-      {
-        'prediction_file': '/Users/danramage/tmp/wq_feeds/charleston/Predictions.json',
-        'advisory_file': '/Users/danramage/tmp/wq_feeds/charleston/monitorstations/beach_advisories.json',
-        'stations_directory': '/Users/danramage/tmp/wq_feeds/charleston/monitorstations'
-      },
-      'killdevilhills':
-      {
-        'prediction_file': '/Users/danramage/tmp/wq_feeds/kdh/Predictions.json',
-        'advisory_file': '/Users/danramage/tmp/wq_feeds/kdh/monitorstations/kdh_beach_advisories.json',
-        'stations_directory': '/Users/danramage/tmp/wq_feeds/kdh/monitorstations'
-      },
-    'follybeach':
-      {
-        'prediction_file': '/Users/danramage/Documents/workspace/WaterQuality/FollyBeach-WaterQuality/data/test_outputs/Predictions.json',
-        'advisory_file': '/Users/danramage/Documents/workspace/WaterQuality/FollyBeach-WaterQuality/data/test_outputs/beach_advisories.json',
-        'stations_directory': '/Users/danramage/Documents/workspace/WaterQuality/FollyBeach-WaterQuality/data/test_outputs/',
-        'camera_statistics': '/Users/danramage/Documents/workspace/WaterQuality/FollyBeach-WaterQuality/data/camera/summary_data.json',
-        'shellfish_closures': '/Users/danramage/Documents/workspace/WaterQuality/FollyBeach-WaterQuality/data/shellfish/shellfish_closures.json',
-        'ripcurrents': '/Users/danramage/tmp/wq_feeds/sc_folly_beach/forecasts.json'
-      },
-    'sarasota':
-      {
-        'prediction_file': '/Users/danramage/tmp/wq_feeds/fl_wq/Predictions.json',
-        'advisory_file': '/Users/danramage/tmp/wq_feeds/fl_wq/monitorstations/beachAdvisoryResults.json',
-        'stations_directory': '/Users/danramage/tmp/wq_feeds/feeds/fl_wq/monitorstations',
-        'ripcurrents': '/Users/danramage/tmp/wq_feeds/sarasota/forecasts.json'
-    },
-    'radioisland':
-      {
-        'prediction_file': '/Users/danramage/tmp/wq_feeds/radioisland/Predictions.json',
-        'advisory_file': '/Users/danramage/tmp/wq_feeds/radioisland/monitorstations/kdh_beach_advisories.json',
-        'stations_directory': '/Users/danramage/tmp/wq_feeds/radioisland/monitorstations'
-      }
+      'charleston':
+        {
+          'prediction_file': '/Users/danramage/tmp/wq_feeds/charleston/Predictions.json',
+          'advisory_file': '/Users/danramage/tmp/wq_feeds/charleston/monitorstations/beach_advisories.json',
+          'stations_directory': '/Users/danramage/tmp/wq_feeds/charleston/monitorstations'
+        },
+        'killdevilhills':
+        {
+          'prediction_file': '/Users/danramage/tmp/wq_feeds/kdh/Predictions.json',
+          'advisory_file': '/Users/danramage/tmp/wq_feeds/kdh/monitorstations/kdh_beach_advisories.json',
+          'stations_directory': '/Users/danramage/tmp/wq_feeds/kdh/monitorstations'
+        },
+        'follybeach':
+          {
+            'prediction_file': '/Users/danramage/Documents/workspace/WaterQuality/FollyBeach-WaterQuality/data/test_outputs/Predictions.json',
+            'advisory_file': '/Users/danramage/Documents/workspace/WaterQuality/FollyBeach-WaterQuality/data/test_outputs/beach_advisories.json',
+            'stations_directory': '/Users/danramage/Documents/workspace/WaterQuality/FollyBeach-WaterQuality/data/test_outputs/',
+            'camera_statistics': '/Users/danramage/Documents/workspace/WaterQuality/FollyBeach-WaterQuality/data/camera/summary_data.json',
+            'shellfish_closures': '/Users/danramage/Documents/workspace/WaterQuality/FollyBeach-WaterQuality/data/shellfish/shellfish_closures.json',
+            'ripcurrents': '/Users/danramage/tmp/wq_feeds/sc_folly_beach/forecasts.json'
+          },
+        'sarasota':
+          {
+            'prediction_file': '/Users/danramage/tmp/wq_feeds/fl_wq/Predictions.json',
+            'advisory_file': '/Users/danramage/tmp/wq_feeds/fl_wq/monitorstations/beachAdvisoryResults.json',
+            'stations_directory': '/Users/danramage/tmp/wq_feeds/feeds/fl_wq/monitorstations',
+            'ripcurrents': '/Users/danramage/tmp/wq_feeds/sarasota/forecasts.json'
+        },
+        'radioisland':
+          {
+            'prediction_file': '/Users/danramage/tmp/wq_feeds/radioisland/Predictions.json',
+            'advisory_file': '/Users/danramage/tmp/wq_feeds/radioisland/monitorstations/radioisland_beach_advisories.json',
+            'stations_directory': '/Users/danramage/tmp/wq_feeds/radioisland/monitorstations'
+          }
 
   }
 
