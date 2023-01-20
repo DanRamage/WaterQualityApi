@@ -90,12 +90,12 @@ paths:
         description: This is the station name to query the wter quality sampling data for.
       - in: query
         name: startdate
-        description: The date/time for the start of the bacteria data query
+        description: The date/time for the start of the bacteria data query. Format is YYYY-MM-DD HH:MM:SS.
         required: true
         type: string
       - in: query
         name: enddate
-        description: The date/time for the end of the bacteria data query
+        description: The date/time for the end of the bacteria data query. Format is YYYY-MM-DD HH:MM:SS.
         required: true
         type: string
 

@@ -1075,7 +1075,7 @@ class HTBSitesAPI(BaseAPI):
     try:
       features = []
       if bbox is not None:
-        sample_sites_query = db.session.query(Sample_Site, Project_Area.display_name.label('project_area_display_name'),
+        sample_sites_query = db.session.query(Sample_Site, Project_Area.area_name.label('project_area_name'),
                                               Site_Type.name.label('site_type_name')) \
           .join(Project_Area, Project_Area.id == Sample_Site.project_site_id) \
           .join(Site_Type, Site_Type.id == Sample_Site.site_type_id) \
@@ -1091,19 +1091,6 @@ class HTBSitesAPI(BaseAPI):
         # Taking the passed in bounding box, we do an intersection to get the stations we are interested in.
         sample_sites = gpd.overlay(geo_df, bbox_df, how="intersection", keep_geom_type=False)
 
-        # Build up a JSON response
-        for index, row in sample_sites.iterrows():
-          properties = {
-            'description': row['description'],
-            'site_name': row['site_name'],
-            'site_type': row['site_type_name'],
-            'project_area': row['project_area_display_name']
-          }
-          feature = geojson.Feature(id=row['site_name'],
-                                    geometry=geojson.Point((row['longitude'],row['latitude'])),
-                                    properties=properties)
-          features.append(feature)
-
       else:
         sample_sites_query = db.session.query(Sample_Site) \
           .join(Project_Area, Project_Area.id == Sample_Site.project_site_id) \
@@ -1111,19 +1098,9 @@ class HTBSitesAPI(BaseAPI):
           .filter(Site_Type.name == 'Water Quality') \
           .order_by(Project_Area.display_name)
         sample_sites = sample_sites_query.all()
-        #Build up a JSON response
-        for sample_site in sample_sites:
-          properties = {
-            'description': sample_site.description,
-            'site_type': sample_site.site_type.name,
-            'site_name': sample_site.site_name,
-            'project_area': sample_site.project_site.display_name
-          }
 
-          feature = geojson.Feature(id=sample_site.site_name,
-                                    geometry=geojson.Point((sample_site.longitude,sample_site.latitude)),
-                                    properties=properties)
-          features.append(feature)
+      features = self.build_feature_collection(sample_sites)
+      #Build up a JSON response
       results['sites'] = geojson.FeatureCollection(features)
     except Exception as e:
       current_app.logger.error("IP: %s error getting samples sites from database." % (request.remote_addr))
@@ -1134,6 +1111,38 @@ class HTBSitesAPI(BaseAPI):
 
     return (client_results, ret_code, {'Content-Type': 'application/json'})
 
+  def build_feature_collection(self, db_records):
+    features = []
+    #Figure out what kind of records we're iterating through. If we did a BBOX GET, then
+    #the records are a dataframe. Otherwise they are SQLAlchemy objects.
+    if type(db_records) == gpd.GeoDataFrame:
+      # Build up a JSON response
+      for index, row in db_records.iterrows():
+        properties = {
+          'description': row['description'],
+          'site_name': row['site_name'],
+          'site_type': row['site_type_name'],
+          'project_area': row['project_area_name']
+        }
+        feature = geojson.Feature(id=row['site_name'],
+                                  geometry=geojson.Point((row['longitude'], row['latitude'])),
+                                  properties=properties)
+        features.append(feature)
+    else:
+        for sample_site in db_records:
+          properties = {
+            'description': sample_site.description,
+            'site_type': sample_site.site_type.name,
+            'site_name': sample_site.site_name,
+            'project_area': sample_site.project_site.area_name
+          }
+
+          feature = geojson.Feature(id=sample_site.site_name,
+                                    geometry=geojson.Point((sample_site.longitude,sample_site.latitude)),
+                                    properties=properties)
+          features.append(feature)
+
+    return(features)
 
 class SitesDataAPI(BaseAPI):
   def __init__(self, *args, **kwargs):
@@ -1236,48 +1245,6 @@ class SitesDataAPI(BaseAPI):
       except Exception as e:
         current_app.logger.exception(e)
       return properties
-
-  def create_rip_current_properties(self, sitename, ripcurrents_data, site_rec, data_timeout):
-    try:
-      #For the time being handle follybeach different than sarasota.
-      if sitename == 'follybeach':
-        if sitename in ripcurrents_data:
-          #features = ripcurrents_data['features']
-          #ndx = locate_element(features, lambda data: data['properties']['description'] == site_rec.site_name)
-          forecasts = ripcurrents_data[sitename]
-          properties = {
-            'station': site_rec.site_name,
-            'advisory': {
-              'date': forecasts['date'],
-              'value': forecasts['riprisk'].upper(),
-              'flag': forecasts['riprisk'].upper(),
-              'wfo_url':  forecasts['wfo_url'],
-              'guidance_url': forecasts['guidance_url'],
-              'description': site_rec.description,
-              'hours_data_valid': data_timeout
-              }
-          }
-      #For sarasota the rip current "stations" are used as the key into the nws file.
-      elif sitename == 'sarasota':
-        if site_rec.site_name.lower() in ripcurrents_data:
-          forecasts = ripcurrents_data[site_rec.site_name.lower()]
-          properties = {
-            'station': site_rec.site_name,
-            'advisory': {
-              'date': forecasts['date'],
-              'value': forecasts['riprisk'].upper(),
-              'flag': forecasts['riprisk'].upper(),
-              'wfo_url':  forecasts['wfo_url'],
-              'guidance_url': forecasts['guidance_url'],
-              'description': site_rec.description,
-              'hours_data_valid': data_timeout
-              }
-          }
-
-      return properties
-    except Exception as e:
-      current_app.logger.exception(e)
-    return None
 
   def add_shellfish_data(self, sitename):
     shellfish_data = None
@@ -1488,7 +1455,7 @@ class SiteBacteriaDataAPI(MethodView):
                 current_app.logger.exception(e)
                 tst_date_obj = None
 
-          if tst_date_obj is not None and (tst_date_obj >= start_date_obj and tst_date_obj < end_date_obj):
+          if tst_date_obj is not None and (start_date_obj <= tst_date_obj < end_date_obj):
             result = advisoryList[ndx]
             value = result['value']
             try:
