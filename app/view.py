@@ -36,22 +36,6 @@ from .wq_models import Project_Area, \
   WebCOOS
 
 
-class SiteGeometry:
-  def __init__(self, geom):
-    self._geometry = geom
-
-class SiteProperties:
-  def __init__(self, **kwargs):
-    for key, value in kwargs.items():
-      setattr(self, "_{}".format(key), value)
-
-
-class SiteFeature:
-  def __init__(self, geometry, properties):
-    self._geometry = SiteGeometry(geometry)
-    self._properties = SiteProperties(properties)
-
-
 def locate_element(list, filter):
   for ndx, x in enumerate(list):
     if filter(x):
