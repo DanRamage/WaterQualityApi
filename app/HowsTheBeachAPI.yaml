@@ -109,6 +109,35 @@ paths:
         400:
           description: bad input parameter
 
+  /nowcastsites:
+    get:
+      tags:
+      - users
+      summary: Return a FeatureCollection of sites metadata.
+      operationId: nowcastsites
+      description: |
+        Return a FeatureCollection of sites metadata.
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: bbox
+        type: string
+        required: false
+        description: The bounding box to limit the query to. The format is upper longitude, upper latitude, lower longitude, lower latitude
+        example: bbox=-81.1,32.8,-77.8,34
+
+
+      responses:
+        200:
+          description: search results matching criteria
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SitesMetaData'
+        400:
+          description: bad input parameter
+
 definitions:
   SiteItem:
     description: A GeoJSON response for one or more sites. The response will vary depending on the type of site defined in the site_type parameter. Each one will be described below. Currently there are site_types of "Water Quality", "Shellfish", and "Camera". The site_type will define what type of data payload is present.
@@ -240,6 +269,44 @@ definitions:
                             type: number
                             example: 10.0
 
+  SitesMetaData:
+    description: A GeoJSON response for the Nowcast sites. This contains metadata about the sites.
+    type: object
+    properties:
+      properties:
+        type: object
+        properties:
+          type:
+            type: string
+            example: Feature
+          features:
+            type: array
+            items:
+              type: object
+              properties:
+                geometry:
+                  description: A GeoJSON formated geometry field.
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    coordinates:
+                      type: array
+                      items:
+                        example: [longitude,latitude]
+
+                description:
+                  type: string
+                  example: Ocean Lakes Campground
+                site_type:
+                  type: string
+                  example: Water Quality
+                site_name:
+                  type: string
+                  example: WAC-029
+                project_area:
+                  type: string
+                  example: Myrtle Beach
 schemes:
  - https
 host: devapi.howsthebeach.org

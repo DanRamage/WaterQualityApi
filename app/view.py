@@ -5,9 +5,9 @@ import flask_admin as admin
 import flask_login as login
 from flask_admin.contrib import sqla
 from flask_admin import helpers, expose
-from flask_security import Security, SQLAlchemyUserDatastore, \
-    login_required, current_user
-from sqlalchemy import exc
+from flask_security import current_user
+import pandas as pd
+import geopandas as gpd
 import requests
 import time
 import json
@@ -18,6 +18,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import exc
 from shapely.wkb import loads as wkb_loads
 from shapely.wkt import loads as wkt_loads
+
 from config import CURRENT_SITE_LIST, VALID_UPDATE_ADDRESSES, SITES_CONFIG, SITE_TYPE_DATA_VALID_TIMEOUTS
 
 from app import db
@@ -155,6 +156,24 @@ def build_feature_collection(features):
   }
   return feature_collection
 
+
+def BBOXtoPolygon(bbox):
+  try:
+    bounding_box = request.args['bbox'].split(',')
+    if len(bounding_box) == 4:
+      wkt_query_polygon = 'POLYGON(({x1} {y1}, {x1} {y2}, {x2} {y2}, {x2} {y1}, {x1} {y1}))'.format(
+        x1=bounding_box[0],
+        y1=bounding_box[1],
+        x2=bounding_box[2],
+        y2=bounding_box[3]
+      )
+      query_polygon = wkt_loads(wkt_query_polygon)
+      return query_polygon
+  except Exception as e:
+    current_app.logger.exception(e)
+  return None
+
+
 class MaintenanceMode(View):
   def dispatch_request(self):
     current_app.logger.debug('IP: %s MaintenanceMode rendered' % (request.remote_addr))
@@ -186,13 +205,6 @@ class ShowAboutPage(View):
 
     current_app.logger.debug('dispatch_request finished in %f seconds' % (time.time()-start_time))
     return rendered_template
-
-
-class CameraPage(View):
-  def __init__(self, site_name):
-    current_app.logger.debug('__init__')
-    self.site_name = site_name
-    self.page_template = 'camera_page_template.html'
 
 class SitePage(View):
   def __init__(self, site_name):
@@ -391,80 +403,6 @@ class SitePage(View):
     current_app.logger.debug('dispatch_request finished in %f seconds' % (time.time()-start_time))
     return rendered_template
 
-class MyrtleBeachPage(SitePage):
-  def __init__(self):
-    current_app.logger.debug('IP: %s MyrtleBeachPage __init__' % (request.remote_addr))
-    SitePage.__init__(self, 'myrtlebeach')
-    self.page_template = 'mb_index_page.html'
-
-class MBAboutPage(ShowAboutPage):
-  def __init__(self):
-    current_app.logger.debug('IP: %s MBAboutPage __init__' % (request.remote_addr))
-    ShowAboutPage.__init__(self, 'myrtlebeach', 'sc_about_page.html')
-
-
-
-class SarasotaPage(SitePage):
-  def __init__(self):
-    current_app.logger.debug('IP: %s SarasotaPage __init__' % (request.remote_addr))
-    SitePage.__init__(self, 'sarasota')
-    self.page_template = 'sarasota_index_page.html'
-
-class SarasotaAboutPage(ShowAboutPage):
-  def __init__(self):
-    current_app.logger.debug('IP: %s SarasotaAboutPage __init__' % (request.remote_addr))
-    ShowAboutPage.__init__(self, 'sarasota', 'fl_about_page.html')
-
-class CharlestonPage(SitePage):
-  def __init__(self):
-    current_app.logger.debug('IP: %s CharlestonPage __init__' % (request.remote_addr))
-    SitePage.__init__(self, 'charleston')
-    self.page_template = 'chs_index_page.html'
-
-class CHSAboutPage(ShowAboutPage):
-  def __init__(self):
-    current_app.logger.debug('IP: %s SCAboutPage __init__' % (request.remote_addr))
-    ShowAboutPage.__init__(self, 'charleston', 'sc_about_page.html')
-
-class KillDevilHillsPage(SitePage):
-  def __init__(self):
-    current_app.logger.debug('IP: %s KillDevilHillsPage __init__' % (request.remote_addr))
-    SitePage.__init__(self, 'killdevilhills')
-    self.page_template = 'kdh_index_page.html'
-
-class KDHAboutPage(ShowAboutPage):
-  def __init__(self):
-    current_app.logger.debug('IP: %s NCAboutPage __init__' % (request.remote_addr))
-    ShowAboutPage.__init__(self, 'killdevilhills', 'nc_about_page.html')
-
-class FollyBeachShowIntroPage(View):
-  def dispatch_request(self):
-    current_app.logger.debug('IP: %s follybeach_intro_page rendered' % (request.remote_addr))
-    return render_template("folly_beach_intro.html")
-
-
-class FollyBeachPage(SitePage):
-  def __init__(self):
-    current_app.logger.debug('IP: %s FollyBeachPage __init__' % (request.remote_addr))
-    SitePage.__init__(self, 'follybeach')
-    self.page_template = 'follybeach_index_page.html'
-
-class FollyBeachAboutPage(ShowAboutPage):
-  def __init__(self):
-    current_app.logger.debug('IP: %s FollyBeachAboutPage __init__' % (request.remote_addr))
-    ShowAboutPage.__init__(self, 'follybeach', 'sc_about_page.html')
-
-class FollyBeachCameraPage(CameraPage):
-  def __init__(self, **kwargs):
-    current_app.logger.debug('IP: %s FollyBeachCameraPage __init__' % (request.remote_addr))
-    CameraPage.__init__(self, 'follybeach')
-    self.page_template = 'camera_page_template.html'
-  def dispatch_request(self, cameraname):
-    start_time = time.time()
-    current_app.logger.debug('IP: %s FollyBeachPage dispatch_request for camera: %s' % (request.remote_addr, cameraname))
-
-    return render_template("follybeach_camera_page_template.html", cameraname=cameraname)
-
 def get_data_file(filename):
   current_app.logger.debug("get_data_file Started.")
 
@@ -500,67 +438,6 @@ class BaseAPI(MethodView):
       'message': error_message
     }
     return json_error
-
-class PredictionsAPI(MethodView):
-  def get(self, sitename=None):
-    start_time = time.time()
-    current_app.logger.debug('IP: %s PredictionsAPI get for site: %s' % (request.remote_addr, sitename))
-    ret_code = 404
-    results = None
-
-    if sitename == 'myrtlebeach':
-      results, ret_code = get_data_file(SC_MB_PREDICTIONS_FILE)
-    elif sitename == 'sarasota':
-      results, ret_code = get_data_file(FL_SARASOTA_PREDICTIONS_FILE)
-    elif sitename == 'charleston':
-      results, ret_code = get_data_file(SC_CHS_PREDICTIONS_FILE)
-    elif sitename == 'follybeach':
-      results, ret_code = get_data_file(SC_FOLLYBEACH_PREDICTIONS_FILE)
-
-    else:
-      results = json.dumps({'status': {'http_code': ret_code},
-                    'contents': None
-                    })
-
-    current_app.logger.debug('PredictionsAPI get for site: %s finished in %f seconds' % (sitename, time.time() - start_time))
-    return (results, ret_code, {'Content-Type': 'Application-JSON'})
-
-
-class BacteriaDataAPI(MethodView):
-  def get(self, sitename=None):
-    start_time = time.time()
-    current_app.logger.debug('IP: %s BacteriaDataAPI get for site: %s' % (request.remote_addr, sitename))
-    ret_code = 404
-    results = None
-
-    if sitename == 'myrtlebeach':
-      results, ret_code = get_data_file(SC_MB_ADVISORIES_FILE)
-      #Wrap the results in the status and contents keys. The app expects this format.
-      json_ret = {'status': {'http_code': ret_code},
-                  'contents': json.loads(results)}
-      results = json.dumps(json_ret)
-
-    elif sitename == 'sarasota':
-      results,ret_code = get_data_file(FL_SARASOTA_ADVISORIES_FILE)
-      #Wrap the results in the status and contents keys. The app expects this format.
-      json_ret = {'status' : {'http_code': ret_code},
-                  'contents': json.loads(results)}
-      results = json.dumps(json_ret)
-
-    elif sitename == 'charleston':
-      results,ret_code = get_data_file(SC_CHS_ADVISORIES_FILE)
-      #Wrap the results in the status and contents keys. The app expects this format.
-      json_ret = {'status' : {'http_code': ret_code},
-                  'contents': json.loads(results)}
-      results = json.dumps(json_ret)
-
-    else:
-      results = json.dumps({'status': {'http_code': ret_code},
-                    'contents': None
-                    })
-
-    current_app.logger.debug('BacteriaDataAPI get for site: %s finished in %f seconds' % (sitename, time.time() - start_time))
-    return (results, ret_code, {'Content-Type': 'Application-JSON'})
 
 
 class StationDataAPI(MethodView):
@@ -1199,6 +1076,79 @@ class SiteMapPage(View):
 
     return rendered_template
 
+class HTBSitesAPI(BaseAPI):
+  def get(self):
+    start_time = time.time()
+    current_app.logger.debug(f"IP: {request.remote_addr} HTBSitesAPI get request args: {str(request.args)}")
+    bbox = None
+    if 'bbox' in request.args:
+      bbox = BBOXtoPolygon(request.args['bbox'])
+
+    ret_code = 501
+    results =  {
+      'sites': {},
+    }
+    try:
+      features = []
+      if bbox is not None:
+        sample_sites_query = db.session.query(Sample_Site, Project_Area.display_name.label('project_area_display_name'),
+                                              Site_Type.name.label('site_type_name')) \
+          .join(Project_Area, Project_Area.id == Sample_Site.project_site_id) \
+          .join(Site_Type, Site_Type.id == Sample_Site.site_type_id) \
+          .filter(Site_Type.name == 'Water Quality') \
+          .order_by(Project_Area.display_name)
+        bbox_series = gpd.GeoSeries([bbox])
+        bbox_df = gpd.GeoDataFrame({'geometry': bbox_series})
+        # We give pandas the sql statement to make the query and build the dataframe from the results.
+        df = pd.read_sql(sample_sites_query.statement, db.engine)
+        # Create the geopandas dataframe using the points_from_xy to build the geometry column.
+        geo_df = gpd.GeoDataFrame(df,
+                                  geometry=gpd.points_from_xy(x=df.longitude, y=df.latitude))
+        # Taking the passed in bounding box, we do an intersection to get the stations we are interested in.
+        sample_sites = gpd.overlay(geo_df, bbox_df, how="intersection", keep_geom_type=False)
+
+        # Build up a JSON response
+        for index, row in sample_sites.iterrows():
+          properties = {
+            'description': row['description'],
+            'site_name': row['site_name'],
+            'site_type': row['site_type_name'],
+            'project_area': row['project_area_display_name']
+          }
+          feature = geojson.Feature(id=row['site_name'],
+                                    geometry=geojson.Point((row['longitude'],row['latitude'])),
+                                    properties=properties)
+          features.append(feature)
+
+      else:
+        sample_sites_query = db.session.query(Sample_Site) \
+          .join(Project_Area, Project_Area.id == Sample_Site.project_site_id) \
+          .join(Site_Type, Site_Type.id == Sample_Site.site_type_id) \
+          .filter(Site_Type.name == 'Water Quality') \
+          .order_by(Project_Area.display_name)
+        sample_sites = sample_sites_query.all()
+        #Build up a JSON response
+        for sample_site in sample_sites:
+          properties = {
+            'description': sample_site.description,
+            'site_type': sample_site.site_type.name,
+            'site_name': sample_site.site_name,
+            'project_area': sample_site.project_site.display_name
+          }
+
+          feature = geojson.Feature(id=sample_site.site_name,
+                                    geometry=geojson.Point((sample_site.longitude,sample_site.latitude)),
+                                    properties=properties)
+          features.append(feature)
+      results['sites'] = geojson.FeatureCollection(features)
+    except Exception as e:
+      current_app.logger.error("IP: %s error getting samples sites from database." % (request.remote_addr))
+      current_app.logger.exception(e)
+
+    current_app.logger.debug(f"IP: {request.remote_addr} HTBSitesAPI get finished in {time.time() - start_time} seconds")
+    client_results = json.dumps(results)
+
+    return (client_results, ret_code, {'Content-Type': 'application/json'})
 
 
 class SitesDataAPI(BaseAPI):
@@ -1405,11 +1355,6 @@ class SitesDataAPI(BaseAPI):
 
         #Does site have shellfish data?
         shellfish_data = self.add_shellfish_data(sitename)
-
-        #Does site have ripcurrents data?
-        ripcurrents_data = None
-        if 'ripcurrents' in SITES_CONFIG[sitename]:
-          ripcurrents_data = self.load_data_file(SITES_CONFIG[sitename]['ripcurrents'])
 
         sample_sites = self.get_sample_sites(sitename, station=self.station, site_types=self.site_type)
 
