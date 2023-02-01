@@ -17,6 +17,35 @@ tags:
   description: Operations available to regular users
 
 paths:
+  /nowcastsites:
+    get:
+      tags:
+      - users
+      summary: Return a FeatureCollection of sites metadata. Call this endpoint first to get a list of the stations and sites available. Can use a bounding box to limit the search to a specific area.
+      operationId: nowcastsites
+      description: |
+        Return a FeatureCollection of sites metadata.
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: bbox
+        type: string
+        required: false
+        description: The bounding box to limit the query to. The format is upper longitude, upper latitude, lower longitude, lower latitude
+        example: bbox=-81.1,32.8,-77.8,34
+
+
+      responses:
+        200:
+          description: search results matching criteria
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SitesMetaData'
+        400:
+          description: bad input parameter
+
   /{location_name}/sites:
     get:
       tags:
@@ -109,34 +138,6 @@ paths:
         400:
           description: bad input parameter
 
-  /nowcastsites:
-    get:
-      tags:
-      - users
-      summary: Return a FeatureCollection of sites metadata.
-      operationId: nowcastsites
-      description: |
-        Return a FeatureCollection of sites metadata.
-      produces:
-      - application/json
-      parameters:
-      - in: path
-        name: bbox
-        type: string
-        required: false
-        description: The bounding box to limit the query to. The format is upper longitude, upper latitude, lower longitude, lower latitude
-        example: bbox=-81.1,32.8,-77.8,34
-
-
-      responses:
-        200:
-          description: search results matching criteria
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/SitesMetaData'
-        400:
-          description: bad input parameter
 
 definitions:
   SiteItem:
