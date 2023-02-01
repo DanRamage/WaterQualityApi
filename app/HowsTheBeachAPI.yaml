@@ -46,7 +46,7 @@ paths:
         400:
           description: bad input parameter
 
-  /{location_name}/sites:
+  /{project_area}/sites:
     get:
       tags:
       - users
@@ -75,12 +75,12 @@ paths:
         type: string
       - in: query
         name: project_area
-        description: pass in True to receive information, such as the display name, for the project area.
+        description: pass in True to receive information, such as the display name, for the project area. This is the project_area field from the /nowcastsites above.
         required: false
         type: string
       - in: query
         name: site_type
-        description: To receive only one type of site, set this parameter. Currently site types can be Water Quality, Camera Site, Shellfish, Water Quality Nowcast
+        description: To receive only one type of site, set this parameter. Currently site types can be Water Quality, Camera Site, Shellfish, Water Quality Nowcast. This is the site_type in the /nowcastsites request above.
         required: false
         type: string
 
@@ -95,7 +95,7 @@ paths:
         400:
           description: bad input parameter
 
-  /{location_name}/{station_name}/bacteria:
+  /{project_area}/{site_name}/bacteria:
     get:
       tags:
       - users
@@ -107,16 +107,16 @@ paths:
       - application/json
       parameters:
       - in: path
-        name: location_name
+        name: project_area
         type: string
         required: true
-        description: This is the geographic site the station is in. Acceptable values are myrtlebeach, follybeach, killdevilhills, or sarasota.
+        description: This is the geographic site the station is in. Acceptable values are myrtlebeach, follybeach, killdevilhills, radioisland, or sarasota. This is the project_area field from the /nowcastsites above.
 
       - in: path
-        name: station_name
+        name: site_name
         type: string
         required: true
-        description: This is the station name to query the wter quality sampling data for.
+        description: This is the station name to query the water quality sampling data for. This is the site_name field from the /nowcastsites above.
       - in: query
         name: startdate
         description: The date/time for the start of the bacteria data query. Format is YYYY-MM-DD HH:MM:SS.
