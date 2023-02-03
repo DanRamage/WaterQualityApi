@@ -1508,7 +1508,7 @@ class SiteBacteriaDataAPI(MethodView):
               .join(Project_Area, Project_Area.id == Sample_Site.project_site_id) \
               .join(Site_Type, Site_Type.id == Sample_Site.site_type_id) \
               .filter(Sample_Site.site_name == site)\
-              .filter(Project_Area.area_name == sitename).one()
+              .filter(Project_Area.area_name == sitename).all()
           except exc.SQLAlchemyError as e:
             ret_code = 404
             results = build_json_error(404, 'Site: %s does not exist.' % (site))
@@ -1517,6 +1517,9 @@ class SiteBacteriaDataAPI(MethodView):
             ret_code = 501
             results = build_json_error(501, 'Server encountered a problem with the query.' % (site))
           else:
+            if len(site_rec) > 1:
+              current_app.logger.error(f"Multiple records for site: {site} returned.")
+            site_rec = site_rec[0]
             if site_rec.site_type.name is not None:
               site_type = site_rec.site_type.name
             else:
