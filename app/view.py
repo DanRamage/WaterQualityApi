@@ -19,7 +19,7 @@ from sqlalchemy import exc
 from shapely.wkb import loads as wkb_loads
 from shapely.wkt import loads as wkt_loads
 
-from config import CURRENT_SITE_LIST, VALID_UPDATE_ADDRESSES, SITES_CONFIG, SITE_TYPE_DATA_VALID_TIMEOUTS
+from config import VALID_UPDATE_ADDRESSES, SITES_CONFIG, SITE_TYPE_DATA_VALID_TIMEOUTS
 
 from app import db
 from .admin_models import User

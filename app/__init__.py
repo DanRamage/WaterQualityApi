@@ -22,15 +22,24 @@ def create_app(config_file):
   install_secret_key(app)
 
   from app import db
+
+   # Create in-memory database
+  app.config['DATABASE_FILE'] = os.path.join(app.root_path, DATABASE_FILE)
+  SQLALCHEMY_DATABASE_URI = 'sqlite:///' + app.config['DATABASE_FILE']
+  app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+  app.config['SQLALCHEMY_ECHO'] = SQLALCHEMY_ECHO
+
   db.app = app
   db.init_app(app)
 
   # Create in-memory database
-  app.config['DATABASE_FILE'] = DATABASE_FILE
-  app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
-  app.config['SQLALCHEMY_ECHO'] = SQLALCHEMY_ECHO
+  #app.config['DATABASE_FILE'] = DATABASE_FILE
+  #app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+  #app.config['SQLALCHEMY_ECHO'] = SQLALCHEMY_ECHO
 
   init_logging(app)
+
+  app.logger.debug(app.config['DATABASE_FILE'])
 
   build_flask_admin(app)
   build_url_rules(app)
