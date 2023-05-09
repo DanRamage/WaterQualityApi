@@ -224,7 +224,7 @@ class BeachAmbassador(db.Model):
   sample_site_name = db.relationship('Sample_Site', backref='beach_ambassador', foreign_keys=[sample_site_id])
   site_url = db.Column(db.String(2048))
 
-class WebCOOS(db.Model):
+class webcoos(db.Model):
   __table_name__ = 'webcoos'
   id = db.Column(db.Integer, primary_key=True)
   row_entry_date = db.Column(db.String(32))

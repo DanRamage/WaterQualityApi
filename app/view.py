@@ -33,7 +33,7 @@ from .wq_models import Project_Area, \
   Collection_Program_Info_Mapper, \
   Collection_Program_Type, \
   BeachAmbassador, \
-  WebCOOS
+  webcoos
 
 
 def locate_element(list, filter):
@@ -1235,8 +1235,8 @@ class SitesDataAPI(BaseAPI):
   def create_camera_properties(self, siteid):
       properties = None
       try:
-        camera_site = db.session.query(WebCOOS) \
-          .filter(WebCOOS.sample_site_id == siteid) \
+        camera_site = db.session.query(webcoos) \
+          .filter(webcoos.sample_site_id == siteid) \
           .one()
         properties = {
           'id': camera_site.webcoos_id,
