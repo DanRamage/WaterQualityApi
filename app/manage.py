@@ -16,12 +16,10 @@ from app import db
 from config import *
 from .wq_models import Project_Area, Sample_Site, Boundary, Site_Extent, Sample_Site_Data, Site_Type, BeachAmbassador
 from datetime import datetime
-from shapely.wkb import loads as wkb_loads
-#from wq_sites import wq_sample_sites
 import json
 import requests
-#import geopandas as gpd
-#import pandas as pd
+import shapely
+from shapely.wkb import loads as wkb_loads
 from shapely.geometry import Point, Polygon, box
 
 #from sqlalchemy import MetaData
@@ -385,17 +383,22 @@ def get_bcrs_sites(params):
 
 
 @app.cli.command('get_shellcast_sites')
-@click.option('--params', nargs=3)
+@click.option('--params', nargs=4)
 def get_shellcast_sites(params):
   #from .ShellcastModels import NCDMFLease
   init_logging(app)
   location = params[0]
   url = params[1]
   bbox = params[2]
+  dry_run = params[3] == 'True'
   '''
   Killl devil hills:
   LL: -75.851530, 35.838785
   UR: -75.589265,  36.145002
+  
+  SC Myrtle Beach:
+  URL: https://shellcast-sc-dot-ncsu-shellcast.appspot.com/static/cmu_bounds.geojson
+  "33.401803 -79.475394,33.844950 -77.916390" 
   '''
   '''
   user_name = params[0]
@@ -432,26 +435,34 @@ def get_shellcast_sites(params):
         cmu_poly = None
         if geometry['type'] == 'MultiPolygon':
           cmu_poly = Polygon(geometry['coordinates'][0][0])
+        elif geometry['type'] == 'Polygon':
+          cmu_poly = Polygon(geometry['coordinates'][0])
+
         if cmu_poly is not None and cmu_poly.intersects(location_bbox):
           props = cmu['properties']
-          current_app.logger.debug("CMU: %s intersects %s bbox." % (props['cmu_name'], location))
+          cmu_name = ""
+          if 'cmu_name' in props:
+            cmu_name = props['cmu_name']
+          elif 'Label' in props:
+            cmu_name = props['Label']
+          current_app.logger.debug(f"CMU: {cmu_name} intersects {location} bbox.")
           add_site = False
           try:
             current_app.logger.debug(
-              "Station: %s in bbox, checking if it already exists in database." % (props['cmu_name']))
+              f"Station: {cmu_name} in bbox, checking if it already exists in database.")
 
             site_rec = db.session.query(Sample_Site) \
-              .filter(Sample_Site.site_name == props['cmu_name']) \
+              .filter(Sample_Site.site_name == cmu_name) \
               .filter(Sample_Site.project_site_id == proj_area.id).one()
-            current_app.logger.debug("Station: %s already exists in database, not adding." % (props['cmu_name']))
+            current_app.logger.debug(f"Station: {cmu_name} already exists in database, not adding.")
           except Exception as e:
-            current_app.logger.debug("Site: %s is not in database." % (props['cmu_name']))
+            current_app.logger.debug(f"Site: {cmu_name} is not in database.")
             add_site = True
           if add_site:
             center_pt = cmu_poly.centroid.coords[0]
             new_site = Sample_Site(row_entry_date=row_entry_date,
-                                   site_name=props['cmu_name'],
-                                   description=props['cmu_name'],
+                                   site_name=cmu_name,
+                                   description=cmu_name,
                                    latitude=center_pt[1],
                                    longitude=center_pt[0],
                                    project_site_id=proj_area.id,
@@ -460,9 +471,10 @@ def get_shellcast_sites(params):
                                    county='',
                                    state_abbreviation='',
                                    temporary_site=False)
-            current_app.logger.debug("Adding site: %s" % (new_site.site_name))
-            db.session.add(new_site)
-            db.session.commit()
+            if not dry_run:
+              current_app.logger.debug(f"Adding site: {new_site.site_name}")
+              db.session.add(new_site)
+              db.session.commit()
 
     else:
       current_app.logger.error("Unable to GET url: %s, status code: %d" % (url, req.status_code))

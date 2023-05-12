@@ -108,7 +108,7 @@ def build_flask_admin(app):
   admin.add_view(collection_program_info(Collection_Program_Info, db.session, name="Data Collection Programs"))
   admin.add_view(collection_program_type(Collection_Program_Type, db.session, name="Collection Program Types"))
   admin.add_view(beach_ambassador_sites(BeachAmbassador, db.session, name="Beach Ambassador Sites"))
-  admin.add_view(webcoos_sites(webcoos, db.session, name="WebCOOS Sites"))
+  admin.add_view(webcoos_sites(webcoos, db.session, name="webcoos Sites"))
 
 
   admin.add_view(popup_site_view(Sample_Site, db.session, name="Popup Site", endpoint="popup_site_view"))
