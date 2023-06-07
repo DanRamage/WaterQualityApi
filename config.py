@@ -72,7 +72,13 @@ if not PYCHARM_DEBUG:
             'prediction_file': os.path.join(DATA_DIRECTORY, 'northcarolina/radioisland/Predictions.json'),
             'advisory_file': os.path.join(DATA_DIRECTORY, 'northcarolina/radioisland/monitorstations/radioisland_beach_advisories.json'),
             'stations_directory': os.path.join(DATA_DIRECTORY, 'northcarolina/radioisland/monitorstations')
-          }
+          },
+    'saluda':
+      {
+        'prediction_file': '',
+        'advisory_file': os.path.join(DATA_DIRECTORY, 'sc_rivers/beachAdvisoryResults.json'),
+        'stations_directory': os.path.join(DATA_DIRECTORY, 'sc_rivers/monitorstations')
+      }
 
   }
 else:
@@ -122,7 +128,13 @@ else:
             'prediction_file': os.path.join(DATA_DIRECTORY, 'radioisland/Predictions.json'),
             'advisory_file': os.path.join(DATA_DIRECTORY, 'radioisland/monitorstations/radioisland_beach_advisories.json'),
             'stations_directory': os.path.join(DATA_DIRECTORY, 'radioisland/monitorstations')
-          }
+          },
+          'saluda':
+            {
+              'prediction_file': '',
+              'advisory_file': os.path.join(DATA_DIRECTORY, 'sc_rivers/beachAdvisoryResults.json'),
+              'stations_directory': os.path.join(DATA_DIRECTORY, 'sc_rivers/monitorstations')
+            },
 
   }
 
