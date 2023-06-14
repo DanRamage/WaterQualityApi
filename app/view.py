@@ -18,6 +18,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import exc
 from shapely.wkb import loads as wkb_loads
 from shapely.wkt import loads as wkt_loads
+from shapely import from_wkt
 
 from config import VALID_UPDATE_ADDRESSES, SITES_CONFIG, SITE_TYPE_DATA_VALID_TIMEOUTS
 
@@ -1388,6 +1389,15 @@ class SitesDataAPI(BaseAPI):
             if property is not None:
               properties[site_type] = property
 
+          extents_json = None
+          if len(site_rec.extents):
+            properties['extents_geometry'] = []
+            for extent in site_rec.extents:
+              extent_feature = geojson.Feature(id=f"{extent.extent_name}_{extent.id}_extent",
+                                              geometry=from_wkt(extent.wkt_extent),
+                                               properties={'extent_name': extent.extent_name})
+              properties['extents_geometry'].append(extent_feature)
+
           feature = geojson.Feature(id=site_rec.site_name,
                                     geometry=geojson.Point((site_rec.longitude,site_rec.latitude)),
                                     properties=properties)
@@ -1399,7 +1409,7 @@ class SitesDataAPI(BaseAPI):
         sites = list(SITES_CONFIG.keys())
 
         #results = build_json_error(400, "Site: %s is not a vaild site. Valid sites: %s" % (sitename,sites))
-        results = self.json_error_response(400, "Site: %s is not a vaild site. Valid sites: %s" % (sitename,sites))
+        results = self.json_error_response(400, "Site: %s is not a valid site. Valid sites: %s" % (sitename,sites))
         client_results = json.dumps(results)
 
     except Exception as e:
