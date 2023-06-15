@@ -73,7 +73,7 @@ if not PYCHARM_DEBUG:
             'advisory_file': os.path.join(DATA_DIRECTORY, 'northcarolina/radioisland/monitorstations/radioisland_beach_advisories.json'),
             'stations_directory': os.path.join(DATA_DIRECTORY, 'northcarolina/radioisland/monitorstations')
           },
-    'saluda':
+    'midlands':
       {
         'prediction_file': '',
         'advisory_file': os.path.join(DATA_DIRECTORY, 'sc_rivers/beachAdvisoryResults.json'),
@@ -129,7 +129,7 @@ else:
             'advisory_file': os.path.join(DATA_DIRECTORY, 'radioisland/monitorstations/radioisland_beach_advisories.json'),
             'stations_directory': os.path.join(DATA_DIRECTORY, 'radioisland/monitorstations')
           },
-          'saluda':
+          'midlands':
             {
               'prediction_file': '',
               'advisory_file': os.path.join(DATA_DIRECTORY, 'sc_rivers/beachAdvisoryResults.json'),
