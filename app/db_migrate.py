@@ -1,9 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-#from flask_script import Manager
 from flask_migrate import Migrate
-#from flask_migrate import Migrate, MigrateCommand
-#from config import *
 
 DATABASE_FILE = 'wq_db.sqlite'
 SQLALCHEMY_DATABASE_URI = 'sqlite:///' + DATABASE_FILE
@@ -287,6 +284,17 @@ class ShellCast(db.Model):
   sample_site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id))
   sample_site_name = db.relationship('Sample_Site', backref='shell_cast', foreign_keys=[sample_site_id])
 
+class usgs_sites(db.Model):
+  __table_name__ = 'usgs_sites'
+  id = db.Column(db.Integer, primary_key=True)
+  row_entry_date = db.Column(db.String(32))
+  row_update_date = db.Column(db.String(32))
+
+  usgs_site_id = db.Column(db.String(16))       #USGS site ID
+  parameters_to_query = db.Column(db.String())  #USGS parameter codes to query
+  #Relations to the sample site that uses this site.
+  sample_site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id))
+  sample_site_name = db.relationship('Sample_Site', backref='usgs_sites', foreign_keys=[sample_site_id])
 
 # Define models
 roles_users = db.Table(

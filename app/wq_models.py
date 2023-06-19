@@ -224,8 +224,8 @@ class BeachAmbassador(db.Model):
   sample_site_name = db.relationship('Sample_Site', backref='beach_ambassador', foreign_keys=[sample_site_id])
   site_url = db.Column(db.String(2048))
 
-class webcoos(db.Model):
-  __table_name__ = 'webcoos'
+class WebCoos(db.Model):
+  __table_name__ = 'web_coos'
   id = db.Column(db.Integer, primary_key=True)
   row_entry_date = db.Column(db.String(32))
   row_update_date = db.Column(db.String(32))
@@ -234,3 +234,29 @@ class webcoos(db.Model):
   sample_site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id))
   sample_site_name = db.relationship('Sample_Site', backref='webcoos', foreign_keys=[sample_site_id])
   site_url = db.Column(db.String(2048))
+
+class ShellCast(db.Model):
+  __table_name__ = 'shell_cast'
+  id = db.Column(db.Integer, primary_key=True)
+  row_entry_date = db.Column(db.String(32))
+  row_update_date = db.Column(db.String(32))
+
+  site_id = db.Column(db.String(64))
+  site_url = db.Column(db.String(2048))
+  description = db.Column(db.Text, nullable=True)
+
+  sample_site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id))
+  sample_site_name = db.relationship('Sample_Site', backref='shell_cast', foreign_keys=[sample_site_id])
+
+
+class usgs_sites(db.Model):
+  __table_name__ = 'usgs_sites'
+  id = db.Column(db.Integer, primary_key=True)
+  row_entry_date = db.Column(db.String(32))
+  row_update_date = db.Column(db.String(32))
+
+  usgs_site_id = db.Column(db.String(16))       #USGS site ID
+  parameters_to_query = db.Column(db.String())  #USGS parameter codes to query
+  #Relations to the sample site that uses this site.
+  sample_site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id))
+  sample_site_name = db.relationship('Sample_Site', backref='usgs_sites', foreign_keys=[sample_site_id])

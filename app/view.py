@@ -34,7 +34,8 @@ from .wq_models import Project_Area, \
   Collection_Program_Info_Mapper, \
   Collection_Program_Type, \
   BeachAmbassador, \
-  webcoos
+  WebCoos, \
+  usgs_sites
 
 
 def locate_element(list, filter):
@@ -44,6 +45,7 @@ def locate_element(list, filter):
   return -1
 
 
+'''
 def build_advisory_feature(sample_site_rec, sample_date, values):
   beachadvisories = {
     'date': '',
@@ -140,7 +142,7 @@ def build_feature_collection(features):
     'type': 'FeatureCollection'
   }
   return feature_collection
-
+'''
 
 def BBOXtoPolygon(bbox):
   try:
@@ -939,6 +941,11 @@ class webcoos_sites(base_view):
   form_columns = ['webcoos_id', 'sample_site_name', 'site_url', 'row_entry_date', 'row_update_date']
   column_filters = ['webcoos_id', 'sample_site_name', 'site_url', 'row_entry_date', 'row_update_date']
 
+class usgs_sites_view(base_view):
+  column_list = ['id', 'sample_site_name', 'usgs_site_id', 'parameters_to_query', 'row_entry_date', 'row_update_date']
+  form_columns = ['sample_site_name', 'usgs_site_id', 'parameters_to_query', 'row_entry_date', 'row_update_date']
+  column_filters = ['sample_site_name', 'usgs_site_id']
+
 class wktTextField(fields.TextAreaField):
   def process_data(self, value):
     self.data = wkb_loads(value)
@@ -1236,8 +1243,8 @@ class SitesDataAPI(BaseAPI):
   def create_camera_properties(self, siteid):
       properties = None
       try:
-        camera_site = db.session.query(webcoos) \
-          .filter(webcoos.sample_site_id == siteid) \
+        camera_site = db.session.query(WebCoos) \
+          .filter(WebCoos.sample_site_id == siteid) \
           .one()
         properties = {
           'id': camera_site.webcoos_id,
@@ -1287,6 +1294,26 @@ class SitesDataAPI(BaseAPI):
     except Exception as e:
       current_app.logger.exception(e)
     return properties
+
+  def get_usgs_sites(self, siteid):
+    properties = None
+    try:
+      usgs_site_recs = db.session.query(usgs_sites)\
+      .filter(usgs_sites.sample_site_id == siteid)\
+      .all()
+      for rec in usgs_site_recs:
+        if properties is None:
+          properties = {}
+        if rec.usgs_site_id not in properties:
+          properties[rec.usgs_site_id] = {}
+        properties = {
+          'site_id': rec.usgs_site_id,
+          'parameters_to_query': rec.parameters_to_query
+        }
+    except Exception as e:
+      current_app.logger.exception(e)
+    return properties
+
   def get(self, sitename):
     start_time = time.time()
     current_app.logger.debug('IP: %s SiteDataAPI get for site: %s request args: %s' % (request.remote_addr, sitename, str(request.args)))
@@ -1397,6 +1424,13 @@ class SitesDataAPI(BaseAPI):
                                               geometry=from_wkt(extent.wkt_extent),
                                                properties={'extent_name': extent.extent_name})
               properties['extents_geometry'].append(extent_feature)
+
+          #Check to see if the site will be adding any USGS obs onto the staiton page.
+          usgs_properties = self.get_usgs_sites(site_rec.id)
+          if usgs_properties is not None:
+            if 'site_observations' not in properties:
+              properties['site_observations'] = {}
+            properties['site_observations']['usgs_sites'] = usgs_properties
 
           feature = geojson.Feature(id=site_rec.site_name,
                                     geometry=geojson.Point((site_rec.longitude,site_rec.latitude)),
