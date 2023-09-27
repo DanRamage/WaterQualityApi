@@ -305,5 +305,5 @@ definitions:
                   example: Myrtle Beach
 schemes:
  - https
-host: devapi.howsthebeach.org
+host: api.howsthebeach.org
 basePath: /api/v1/
