@@ -31,12 +31,20 @@ from shapely.geometry import Point, Polygon, box
 
 app = Flask(__name__)
 db.app = app
+
+# Create in-memory database
+app.config['DATABASE_FILE'] = os.path.join(app.root_path, DATABASE_FILE)
+SQLALCHEMY_DATABASE_URI = 'sqlite:///' + app.config['DATABASE_FILE']
+app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+app.config['SQLALCHEMY_ECHO'] = SQLALCHEMY_ECHO
+
 db.init_app(app)
+'''
 # Create in-memory database
 app.config['DATABASE_FILE'] = DATABASE_FILE
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 app.config['SQLALCHEMY_ECHO'] = SQLALCHEMY_ECHO
-
+'''
 def init_logging(app):
   app.logger.setLevel(logging.DEBUG)
   file_handler = RotatingFileHandler(filename = LOGFILE)
@@ -290,6 +298,12 @@ def reverse_geocode_sites(params):
       current_app.logger.exception(e)
 
 
+'''
+follybeach
+"32.569375 -80.043630,32.750204 -79.807029"
+sarasota
+"27.230176 -82.947259,27.603518 -82.481535"
+'''
 @app.cli.command('get_bcrs_sites')
 @click.option('--params', nargs=2)
 def get_bcrs_sites(params):
@@ -360,8 +374,8 @@ def get_bcrs_sites(params):
                                        description=beach['name'],
                                        latitude=beach['latitude'],
                                        longitude=beach['longitude'],
-                                       project_site_id=proj_area[0].id,
-                                       site_type_id=site_type[0].id,
+                                       project_site_id=proj_area.id,
+                                       site_type_id=site_type.id,
                                        city=beach['city']['name'],
                                        county=beach['city']['county']['name'],
                                        state_abbreviation=beach['city']['state']['abbreviation'],
