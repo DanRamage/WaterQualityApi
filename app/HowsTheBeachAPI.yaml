@@ -58,7 +58,7 @@ paths:
       - application/json
       parameters:
       - in: path
-        name: location_name
+        name: project_area
         type: string
         required: true
         description: This is the geographic site the station is in. Acceptable values are myrtlebeach, follybeach, killdevilhills, or sarasota.
@@ -71,11 +71,6 @@ paths:
       - in: query
         name: wq_limits
         description: pass in True to receive the limits for the water quality tests.
-        required: false
-        type: string
-      - in: query
-        name: project_area
-        description: pass in True to receive information, such as the display name, for the project area. This is the project_area field from the /nowcastsites above.
         required: false
         type: string
       - in: query
