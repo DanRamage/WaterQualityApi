@@ -39,8 +39,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 app.config['SQLALCHEMY_ECHO'] = SQLALCHEMY_ECHO
 
 db.init_app(app)
-'''
 # Create in-memory database
+'''
 app.config['DATABASE_FILE'] = DATABASE_FILE
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 app.config['SQLALCHEMY_ECHO'] = SQLALCHEMY_ECHO
@@ -298,12 +298,6 @@ def reverse_geocode_sites(params):
       current_app.logger.exception(e)
 
 
-'''
-follybeach
-"32.569375 -80.043630,32.750204 -79.807029"
-sarasota
-"27.230176 -82.947259,27.603518 -82.481535"
-'''
 @app.cli.command('get_bcrs_sites')
 @click.option('--params', nargs=2)
 def get_bcrs_sites(params):
@@ -405,10 +399,14 @@ def get_shellcast_sites(params):
   url = params[1]
   bbox = params[2]
   dry_run = params[3] == 'True'
+  site_url = params[4]
   '''
   Killl devil hills:
   LL: -75.851530, 35.838785
   UR: -75.589265,  36.145002
+
+  charleston
+    32.688589 -80.090126,32.688589 -80.090126
   
   SC Myrtle Beach:
   URL: https://shellcast-sc-dot-ncsu-shellcast.appspot.com/static/cmu_bounds.geojson
