@@ -31,12 +31,20 @@ from shapely.geometry import Point, Polygon, box
 
 app = Flask(__name__)
 db.app = app
-db.init_app(app)
+
 # Create in-memory database
-app.config['DATABASE_FILE'] = DATABASE_FILE
+app.config['DATABASE_FILE'] = os.path.join(app.root_path, DATABASE_FILE)
+SQLALCHEMY_DATABASE_URI = 'sqlite:///' + app.config['DATABASE_FILE']
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 app.config['SQLALCHEMY_ECHO'] = SQLALCHEMY_ECHO
 
+db.init_app(app)
+# Create in-memory database
+'''
+app.config['DATABASE_FILE'] = DATABASE_FILE
+app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+app.config['SQLALCHEMY_ECHO'] = SQLALCHEMY_ECHO
+'''
 def init_logging(app):
   app.logger.setLevel(logging.DEBUG)
   file_handler = RotatingFileHandler(filename = LOGFILE)
@@ -360,8 +368,8 @@ def get_bcrs_sites(params):
                                        description=beach['name'],
                                        latitude=beach['latitude'],
                                        longitude=beach['longitude'],
-                                       project_site_id=proj_area[0].id,
-                                       site_type_id=site_type[0].id,
+                                       project_site_id=proj_area.id,
+                                       site_type_id=site_type.id,
                                        city=beach['city']['name'],
                                        county=beach['city']['county']['name'],
                                        state_abbreviation=beach['city']['state']['abbreviation'],
@@ -391,10 +399,14 @@ def get_shellcast_sites(params):
   url = params[1]
   bbox = params[2]
   dry_run = params[3] == 'True'
+  site_url = params[4]
   '''
   Killl devil hills:
   LL: -75.851530, 35.838785
   UR: -75.589265,  36.145002
+
+  charleston
+    32.688589 -80.090126,32.688589 -80.090126
   
   SC Myrtle Beach:
   URL: https://shellcast-sc-dot-ncsu-shellcast.appspot.com/static/cmu_bounds.geojson
