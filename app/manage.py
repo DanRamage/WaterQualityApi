@@ -301,6 +301,12 @@ def reverse_geocode_sites(params):
 @app.cli.command('get_bcrs_sites')
 @click.option('--params', nargs=2)
 def get_bcrs_sites(params):
+  '''
+  follybeach
+  "32.569375 -80.043630,32.750204 -79.807029"
+  sarasota
+  "27.230176 -82.947259,27.603518 -82.481535"
+  '''
   start_time = time.time()
   location = params[0]
   bbox = params[1]
