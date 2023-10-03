@@ -59,9 +59,9 @@ paths:
       parameters:
       - in: path
         name: project_area
-        description: pass in True to receive information, such as the display name, for the project area. This is the project_area field from the /nowcastsites above.
-        required: true
         type: string
+        required: true
+        description: This is the geographic site the station is in. Acceptable values are myrtlebeach, follybeach, killdevilhills, or sarasota.
 
       - in: query
         name: site
