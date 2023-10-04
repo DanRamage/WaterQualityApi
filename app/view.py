@@ -694,7 +694,7 @@ class RegistrationForm(form.Form):
       if db.session.query(User).filter_by(login=self.login.data).count() > 0:
         raise validators.ValidationError('Duplicate username')
 """
-
+from flask_admin.contrib.sqla.filters import BooleanEqualFilter
 class base_view(sqla.ModelView):
   """
   This view is used to update some common columns across all the tables used.
@@ -884,8 +884,7 @@ class sample_site_view(base_view):
   """
   column_list = ['project_site', 'site_name', 'site_type', 'latitude', 'longitude', 'description', 'epa_id', 'city', 'county', 'post_code', 'state_abbreviation', 'issues_advisories', 'has_current_advisory', 'advisory_text', 'boundaries', 'temporary_site', 'site_data', 'row_entry_date', 'row_update_date']
   form_columns = ['project_site', 'site_name', 'site_type', 'latitude', 'longitude', 'description', 'epa_id', 'city', 'county', 'post_code', 'state_abbreviation', 'site_data','issues_advisories', 'has_current_advisory', 'advisory_text', 'boundaries', 'temporary_site']
-  column_filters = ['project_site']
-
+  column_filters = ['project_site', 'site_type', 'city']
   def on_model_change(self, form, model, is_created):
     """
     When a new record is created or editing, we want to take the values in the lat/long field

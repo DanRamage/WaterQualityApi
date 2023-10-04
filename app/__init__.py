@@ -91,7 +91,11 @@ def build_flask_admin(app):
 
   login_manager.init_app(app)
   # Create admin
-  admin = flask_admin.Admin(app, 'Water Quality Administation', index_view=MyAdminIndexView(), base_template='my_master.html')
+  admin = flask_admin.Admin(app,
+                            'Water Quality Administration',
+                            index_view=MyAdminIndexView(),
+                            base_template='my_master.html',
+                            template_mode='bootstrap3')
 
   # Add view
   admin.add_view(AdminUserModelView(User, db.session, endpoint="admin_user_view"))
