@@ -257,7 +257,6 @@ class usgs_sites(db.Model):
 
   usgs_site_id = db.Column(db.String(16))       #USGS site ID
   parameters_to_query = db.Column(db.String())  #USGS parameter codes to query
-  site_url = db.Column(db.String(2048))
 
   #Relations to the sample site that uses this site.
   sample_site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id))
