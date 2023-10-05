@@ -28,7 +28,7 @@ paths:
       produces:
       - application/json
       parameters:
-      - in: path
+      - in: query
         name: bbox
         type: string
         required: false
