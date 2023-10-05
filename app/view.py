@@ -1076,7 +1076,7 @@ class HTBSitesAPI(BaseAPI):
       bbox = BBOXtoPolygon(request.args['bbox'])
 
     ret_code = 501
-    results =  {
+    results = {
       'sites': {},
     }
     try:
@@ -1109,6 +1109,7 @@ class HTBSitesAPI(BaseAPI):
       features = self.build_feature_collection(sample_sites)
       #Build up a JSON response
       results['sites'] = geojson.FeatureCollection(features)
+      ret_code = 200
     except Exception as e:
       current_app.logger.error("IP: %s error getting samples sites from database." % (request.remote_addr))
       current_app.logger.exception(e)
