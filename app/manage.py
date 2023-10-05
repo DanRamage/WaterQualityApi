@@ -397,9 +397,16 @@ def get_bcrs_sites(params):
 
 
 @app.cli.command('get_shellcast_sites')
-@click.option('--params', nargs=4)
+@click.option('--params', nargs=5)
 def get_shellcast_sites(params):
   #from .ShellcastModels import NCDMFLease
+  '''
+  follybeach
+  "32.569375 -80.043630,32.750204 -79.807029"
+  charleston
+  "32.63065586523308 -79.97283360206296,32.85535922569687 -79.8016601374026"
+
+  '''
   init_logging(app)
   location = params[0]
   url = params[1]
