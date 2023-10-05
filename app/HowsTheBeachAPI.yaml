@@ -34,7 +34,7 @@ paths:
           type: string
         allowReserved: true
         required: false
-        description: The bounding box to limit the query to. The format is upper longitude, upper latitude, lower longitude, lower latitude(bbox=-81.1,32.8,-77.8,34)
+        description: The bounding box to limit the query to. The format is upper longitude, upper latitude, lower longitude, lower latitude.
         example: bbox=-81.1,32.8,-77.8,34
 
 
