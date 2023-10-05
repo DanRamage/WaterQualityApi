@@ -1090,8 +1090,9 @@ class HTBSitesAPI(BaseAPI):
           .order_by(Project_Area.display_name)
         bbox_series = gpd.GeoSeries([bbox])
         bbox_df = gpd.GeoDataFrame({'geometry': bbox_series})
-        # We give pandas the sql statement to make the query and build the dataframe from the results.
-        df = pd.read_sql(sample_sites_query.statement, db.engine)
+        with db.engine.begin() as conn:
+          # We give pandas the sql statement to make the query and build the dataframe from the results.
+          df = pd.read_sql(sample_sites_query.statement, conn)
         # Create the geopandas dataframe using the points_from_xy to build the geometry column.
         geo_df = gpd.GeoDataFrame(df,
                                   geometry=gpd.points_from_xy(x=df.longitude, y=df.latitude))
