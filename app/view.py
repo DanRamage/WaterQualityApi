@@ -200,13 +200,13 @@ class SitePage(View):
     self.page_template = 'index_template.html'
     self._data_types = {}
 
-  def get_site_message(self):
-    current_app.logger.debug('IP: %s get_site_message started' % (request.remote_addr))
+  def get_area_message(self):
+    current_app.logger.debug('IP: %s get_area_message started' % (request.remote_addr))
     start_time = time.time()
     rec = db.session.query(Site_Message)\
       .join(Project_Area, Project_Area.id == Site_Message.site_id)\
       .filter(Project_Area.area_name == self.site_name).first()
-    current_app.logger.debug('get_site_message finished in %f seconds' % (time.time()-start_time))
+    current_app.logger.debug('get_area_message finished in %f seconds' % (time.time()-start_time))
     return rec
 
   def get_program_info(self):
@@ -1187,8 +1187,8 @@ class SitesDataAPI(BaseAPI):
       current_app.logger.exception(e)
     return None
 
-  def get_site_message(self, sitename):
-    current_app.logger.debug('IP: %s get_site_message started' % (request.remote_addr))
+  def get_area_message(self, sitename):
+    current_app.logger.debug('IP: %s get_area_message started' % (request.remote_addr))
     start_time = time.time()
     try:
       rec = db.session.query(Site_Message)\
@@ -1196,7 +1196,7 @@ class SitesDataAPI(BaseAPI):
         .filter(Project_Area.area_name == sitename).first()
     except Exception as e:
       current_app.logger.exception(e)
-    current_app.logger.debug('get_site_message finished in %f seconds' % (time.time()-start_time))
+    current_app.logger.debug('get_area_message finished in %f seconds' % (time.time()-start_time))
     return rec
 
   def get_advisory_limits(self, sitename):
@@ -1319,7 +1319,7 @@ class SitesDataAPI(BaseAPI):
     start_time = time.time()
     current_app.logger.debug('IP: %s SiteDataAPI get for site: %s request args: %s' % (request.remote_addr, sitename, str(request.args)))
     ret_code = 501
-    results =  {
+    results = {
       'sites': {},
     }
     if self.return_wq_limits:
@@ -1343,14 +1343,19 @@ class SitesDataAPI(BaseAPI):
           if limits is not None:
             results['advisory_info']['limits'] = limits
 
+        area_message = self.get_area_message(sitename)
         features = []
 
         for ndx,site_rec in enumerate(sample_sites):
           #We set the project info once.
           if self.return_project_area and ndx == 0:
             results['project_area'] = {
-              'name': site_rec.project_site.display_name
+              'name': site_rec.project_site.display_name,
+              'message': ''
             }
+            if area_message is not None:
+              results['project_area']['message'] = area_message.message
+
           if site_rec.site_type.name is not None:
             site_type = site_rec.site_type.name
           else:
