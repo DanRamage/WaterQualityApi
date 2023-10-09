@@ -15,6 +15,7 @@ import time
 from app import db
 from config import *
 from .wq_models import Project_Area, Sample_Site, Boundary, Site_Extent, Sample_Site_Data, Site_Type, BeachAmbassador
+from .wq_models import ShellCast
 from datetime import datetime
 import json
 import requests
@@ -397,8 +398,19 @@ def get_bcrs_sites(params):
 
 
 @app.cli.command('get_shellcast_sites')
-@click.option('--params', nargs=5)
+@click.option('--params', nargs=6)
 def get_shellcast_sites(params):
+  '''
+  Parses the JSON the ShellCast project uses to define their sites.
+  :param params:
+  1 - Is the Hows The Beach area name we will be storing any found ShellCast sites for.
+  2 - The URL to the ShellCast Json file to parse.
+  3 - BBOX is the bounding box: Lat Lon, Lat Lon, to use to find any ShellCast sites.
+  4 - Dry Run finds the sites, however does not store them in the database.
+  5 - The ShellCast site URL to use for the popups on the Hows The Beach site. Each ShellCast area has a unique URL.
+  6 - Update existing sites, if the site exists, we update the info.
+  :return:
+  '''
   #from .ShellcastModels import NCDMFLease
   '''
   follybeach
@@ -413,6 +425,7 @@ def get_shellcast_sites(params):
   bbox = params[2]
   dry_run = params[3] == 'True'
   site_url = params[4]
+  update_existing_sites = params[5] == 'True'
   '''
   Killl devil hills:
   LL: -75.851530, 35.838785
@@ -493,13 +506,32 @@ def get_shellcast_sites(params):
                                    project_site_id=proj_area.id,
                                    site_type_id=site_type.id,
                                    city='',
-                                   county='',
+                                   county=cmu['properties']['map_county'],
                                    state_abbreviation='',
                                    temporary_site=False)
             if not dry_run:
               current_app.logger.debug(f"Adding site: {new_site.site_name}")
               db.session.add(new_site)
               db.session.commit()
+            shellcast_site = ShellCast(row_entry_date=row_entry_date,
+                                        site_id=cmu_name,
+                                        description=cmu_name,
+                                        site_url=site_url,
+                                        sample_site_id=new_site.id,
+                                        wkt_extent=cmu_poly.wkt)
+
+            if not dry_run:
+              current_app.logger.debug(f"Adding ShellCast site: {shellcast_site.site_id}")
+              db.session.add(shellcast_site)
+              db.session.commit()
+          elif update_existing_sites:
+            center_pt = cmu_poly.centroid.coords[0]
+
+            site_rec.row_update_date = row_entry_date
+            site_rec.description = cmu_name
+            site_rec.latitude = center_pt[1]
+            site_rec.longitude = center_pt[0]
+            db.session.commit()
 
     else:
       current_app.logger.error("Unable to GET url: %s, status code: %d" % (url, req.status_code))

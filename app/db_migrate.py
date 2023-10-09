@@ -280,6 +280,7 @@ class ShellCast(db.Model):
   site_id = db.Column(db.String(64))
   site_url = db.Column(db.String(2048))
   description = db.Column(db.Text, nullable=True)
+  wkt_extent = db.Column(db.Text, nullable=True)
 
   sample_site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id))
   sample_site_name = db.relationship('Sample_Site', backref='shell_cast', foreign_keys=[sample_site_id])
