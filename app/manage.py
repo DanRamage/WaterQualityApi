@@ -15,6 +15,7 @@ import time
 from app import db
 from config import *
 from .wq_models import Project_Area, Sample_Site, Boundary, Site_Extent, Sample_Site_Data, Site_Type, BeachAmbassador
+from .wq_models import ShellCast
 from datetime import datetime
 import json
 import requests
@@ -397,15 +398,48 @@ def get_bcrs_sites(params):
 
 
 @app.cli.command('get_shellcast_sites')
-@click.option('--params', nargs=5)
+@click.option('--params', nargs=6)
 def get_shellcast_sites(params):
+  '''
+  Parses the JSON the ShellCast project uses to define their sites.
+  :param params:
+  1 - Is the Hows The Beach area name we will be storing any found ShellCast sites for.
+  2 - The URL to the ShellCast Json file to parse.
+  3 - BBOX is the bounding box: Lat Lon, Lat Lon, to use to find any ShellCast sites.
+  4 - Dry Run finds the sites, however does not store them in the database.
+  5 - The ShellCast site URL to use for the popups on the Hows The Beach site. Each ShellCast area has a unique URL.
+  6 - Update existing sites, if the site exists, we update the info.
+  :return:
+  '''
   #from .ShellcastModels import NCDMFLease
   '''
   follybeach
-  "32.569375 -80.043630,32.750204 -79.807029"
+  "32.570628 -79.986481,32.750204 -79.807029"
   charleston
   "32.63065586523308 -79.97283360206296,32.85535922569687 -79.8016601374026"
 
+  Kill devil hills:
+  LL: -75.851530, 35.838785
+  UR: -75.589265,  36.145002
+  https://ncsu-shellcast.appspot.com/static/cmu_bounds.geojson
+
+  charleston
+    32.688589 -80.090126,32.688589 -80.090126
+    "https://shellcast-sc-dot-ncsu-shellcast.appspot.com/static/sc_cmu_bounds.geojson
+  SC Myrtle Beach:
+  URL: https://shellcast-sc-dot-ncsu-shellcast.appspot.com/static/cmu_bounds.geojson
+  "33.401803 -79.475394,33.844950 -77.916390" 
+  
+  SQL SNippets to DELETE shell_cast records:
+  DELETE FROM shell_cast
+    WHERE shell_cast.sample_site_id IN (
+    SELECT shell_cast.sample_site_id FROM shell_cast
+            INNER JOIN sample__site ss on ss.id = shell_cast.sample_site_id
+            WHERE ss.project_site_id = 5)
+
+
+
+  
   '''
   init_logging(app)
   location = params[0]
@@ -413,30 +447,8 @@ def get_shellcast_sites(params):
   bbox = params[2]
   dry_run = params[3] == 'True'
   site_url = params[4]
-  '''
-  Killl devil hills:
-  LL: -75.851530, 35.838785
-  UR: -75.589265,  36.145002
+  update_existing_sites = params[5] == 'True'
 
-  charleston
-    32.688589 -80.090126,32.688589 -80.090126
-  
-  SC Myrtle Beach:
-  URL: https://shellcast-sc-dot-ncsu-shellcast.appspot.com/static/cmu_bounds.geojson
-  "33.401803 -79.475394,33.844950 -77.916390" 
-  '''
-  '''
-  user_name = params[0]
-  user_pwd = params[1]
-  db_ip_addr = params[2]
-  database_name = params[3]
-  config = {
-    'user': user_name,
-    'password': user_pwd,
-    'host': db_ip_addr,
-    'database': db_ip_addr
-  }
-  '''
   try:
     ll, ur = bbox.split(',')
     ll = ll.split(' ')
@@ -485,6 +497,9 @@ def get_shellcast_sites(params):
             add_site = True
           if add_site:
             center_pt = cmu_poly.centroid.coords[0]
+            county = ''
+            if 'map_county' in cmu['properties']:
+              county = cmu['properties']['map_county']
             new_site = Sample_Site(row_entry_date=row_entry_date,
                                    site_name=cmu_name,
                                    description=cmu_name,
@@ -493,13 +508,32 @@ def get_shellcast_sites(params):
                                    project_site_id=proj_area.id,
                                    site_type_id=site_type.id,
                                    city='',
-                                   county='',
+                                   county=county,
                                    state_abbreviation='',
                                    temporary_site=False)
             if not dry_run:
               current_app.logger.debug(f"Adding site: {new_site.site_name}")
               db.session.add(new_site)
               db.session.commit()
+            shellcast_site = ShellCast(row_entry_date=row_entry_date,
+                                        site_id=cmu_name,
+                                        description=cmu_name,
+                                        site_url=site_url,
+                                        sample_site_id=new_site.id,
+                                        wkt_extent=cmu_poly.wkt)
+
+            if not dry_run:
+              current_app.logger.debug(f"Adding ShellCast site: {shellcast_site.site_id}")
+              db.session.add(shellcast_site)
+              db.session.commit()
+          elif update_existing_sites:
+            center_pt = cmu_poly.centroid.coords[0]
+
+            site_rec.row_update_date = row_entry_date
+            site_rec.description = cmu_name
+            site_rec.latitude = center_pt[1]
+            site_rec.longitude = center_pt[0]
+            db.session.commit()
 
     else:
       current_app.logger.error("Unable to GET url: %s, status code: %d" % (url, req.status_code))

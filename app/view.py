@@ -18,7 +18,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import exc
 from shapely.wkb import loads as wkb_loads
 from shapely.wkt import loads as wkt_loads
-from shapely import from_wkt
+from shapely import from_wkt, to_geojson, get_coordinates
 
 from config import VALID_UPDATE_ADDRESSES, SITES_CONFIG, SITE_TYPE_DATA_VALID_TIMEOUTS
 
@@ -35,7 +35,8 @@ from .wq_models import Project_Area, \
   Collection_Program_Type, \
   BeachAmbassador, \
   WebCoos, \
-  usgs_sites
+  usgs_sites, \
+  ShellCast
 
 
 def locate_element(list, filter):
@@ -1296,6 +1297,22 @@ class SitesDataAPI(BaseAPI):
       current_app.logger.exception(e)
     return properties
 
+  def get_shellcast_site_properties(self, siteid):
+    properties = site_geometry =None
+    try:
+      site = db.session.query(ShellCast)\
+      .filter(ShellCast.sample_site_id == siteid)\
+      .one()
+      properties = {
+        'id': site.site_id,
+        'site_url': site.site_url
+      }
+      site_poly = wkt_loads(site.wkt_extent)
+      site_geometry = json.loads(to_geojson(site_poly))
+    except Exception as e:
+      current_app.logger.exception(e)
+    return (properties, site_geometry)
+
   def get_usgs_sites(self, siteid):
     properties = None
     try:
@@ -1370,6 +1387,10 @@ class SitesDataAPI(BaseAPI):
             'state_code': site_rec.state_abbreviation,
             'county': site_rec.county
             }
+          #The default site_geometry is going to be the Point() defined in the Sample_Site table.
+          #We may have different geometry, such as polygon for shellcast, so the site_geometry is then
+          #changed.
+          site_geometry = geojson.Point((site_rec.longitude, site_rec.latitude))
           #Default sites are water quality sites, so we will check the predicition and advisory data and add to our response.
           if site_type == 'Water Quality':
             properties[site_type] = {'issues_advisories': site_rec.issues_advisories,
@@ -1413,15 +1434,21 @@ class SitesDataAPI(BaseAPI):
             property = self.create_shellfish_properties(shellfish_data, site_rec, data_timeout)
             if property is not None:
               properties[site_type] = property
+
           elif site_type == 'Camera Site':
             property = self.create_camera_properties(site_rec.id)
             if property is not None:
               properties[site_type] = property
+
           elif site_type == 'Beach Ambassador':
             property = self.get_bcrs_site_properties(site_rec.id)
             if property is not None:
               properties[site_type] = property
 
+          elif site_type == 'Shellcast':
+            property, site_geometry = self.get_shellcast_site_properties(site_rec.id)
+            if property is not None:
+              properties[site_type] = property
           extents_json = None
           if len(site_rec.extents):
             properties['extents_geometry'] = []
@@ -1439,7 +1466,7 @@ class SitesDataAPI(BaseAPI):
             properties['site_observations']['usgs_sites'] = usgs_properties
 
           feature = geojson.Feature(id=site_rec.site_name,
-                                    geometry=geojson.Point((site_rec.longitude,site_rec.latitude)),
+                                    geometry=site_geometry,
                                     properties=properties)
           features.append(feature)
         results['sites'] = geojson.FeatureCollection(features)
