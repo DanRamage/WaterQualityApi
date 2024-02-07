@@ -43,42 +43,50 @@ if not PYCHARM_DEBUG:
         'stations_directory': os.path.join(DATA_DIRECTORY, 'fl_wq/monitorstations'),
         'ripcurrents': os.path.join(DATA_DIRECTORY, 'fl_wq/nwsforecasts/forecasts.json')
       },
-      'charleston':
-        {
-          'prediction_file': os.path.join(DATA_DIRECTORY, 'charleston/Predictions.json'),
-          'advisory_file': os.path.join(DATA_DIRECTORY, 'charleston/monitorstations/beach_advisories.json'),
-          'stations_directory': os.path.join(DATA_DIRECTORY, 'charleston/monitorstations')
-        },
-        'killdevilhills':
-        {
-          'prediction_file': os.path.join(DATA_DIRECTORY, 'northcarolina/killdevilhills/Predictions.json'),
-          'advisory_file': os.path.join(DATA_DIRECTORY, 'northcarolina/killdevilhills/monitorstations/kdh_beach_advisories.json'),
-          'stations_directory': os.path.join(DATA_DIRECTORY, 'northcarolina/killdevilhills/monitorstations')
-        },
-        'follybeach':
-        {
-          'prediction_file': os.path.join(DATA_DIRECTORY, 'follybeach/Predictions.json'),
-          'advisory_file': os.path.join(DATA_DIRECTORY, 'follybeach/monitorstations/beach_advisories.json'),
-          'stations_directory': os.path.join(DATA_DIRECTORY, 'follybeach/monitorstations'),
-          'camera_statistics': '',
-          'shellfish_closures': os.path.join(DATA_DIRECTORY, 'follybeach/shellfish/shellfish_closures.json'),
-          'ripcurrents': os.path.join(DATA_DIRECTORY, 'follybeach/ripcurrent/forecasts.json'),
-          'camera_rest':  {
-            'url': 'https://www.floridaapdata.org/beach/response_beach.php'
-          }
-        },
-        'radioisland':
-          {
-            'prediction_file': os.path.join(DATA_DIRECTORY, 'northcarolina/radioisland/Predictions.json'),
-            'advisory_file': os.path.join(DATA_DIRECTORY, 'northcarolina/radioisland/monitorstations/radioisland_beach_advisories.json'),
-            'stations_directory': os.path.join(DATA_DIRECTORY, 'northcarolina/radioisland/monitorstations')
-          },
+    'charleston':
+      {
+        'prediction_file': os.path.join(DATA_DIRECTORY, 'charleston/Predictions.json'),
+        'advisory_file': os.path.join(DATA_DIRECTORY, 'charleston/monitorstations/beach_advisories.json'),
+        'stations_directory': os.path.join(DATA_DIRECTORY, 'charleston/monitorstations')
+      },
+    'killdevilhills':
+      {
+        'prediction_file': os.path.join(DATA_DIRECTORY, 'northcarolina/killdevilhills/Predictions.json'),
+        'advisory_file': os.path.join(DATA_DIRECTORY,
+                                      'northcarolina/killdevilhills/monitorstations/kdh_beach_advisories.json'),
+        'stations_directory': os.path.join(DATA_DIRECTORY, 'northcarolina/killdevilhills/monitorstations')
+      },
+    'follybeach':
+      {
+        'prediction_file': os.path.join(DATA_DIRECTORY, 'follybeach/Predictions.json'),
+        'advisory_file': os.path.join(DATA_DIRECTORY, 'follybeach/monitorstations/beach_advisories.json'),
+        'stations_directory': os.path.join(DATA_DIRECTORY, 'follybeach/monitorstations'),
+        'camera_statistics': '',
+        'shellfish_closures': os.path.join(DATA_DIRECTORY, 'follybeach/shellfish/shellfish_closures.json'),
+        'ripcurrents': os.path.join(DATA_DIRECTORY, 'follybeach/ripcurrent/forecasts.json'),
+        'camera_rest': {
+          'url': 'https://www.floridaapdata.org/beach/response_beach.php'
+        }
+      },
+    'radioisland':
+      {
+        'prediction_file': os.path.join(DATA_DIRECTORY, 'northcarolina/radioisland/Predictions.json'),
+        'advisory_file': os.path.join(DATA_DIRECTORY,
+                                      'northcarolina/radioisland/monitorstations/radioisland_beach_advisories.json'),
+        'stations_directory': os.path.join(DATA_DIRECTORY, 'northcarolina/radioisland/monitorstations')
+      },
     'midlands':
       {
         'prediction_file': '',
         'advisory_file': os.path.join(DATA_DIRECTORY, 'sc_rivers/beachAdvisoryResults.json'),
         'stations_directory': os.path.join(DATA_DIRECTORY, 'sc_rivers/monitorstations')
-      }
+      },
+    'murrellsinlet':
+      {
+        'prediction_file': os.path.join(DATA_DIRECTORY, 'sc_wq/vb_engine/Predictions.json'),
+        'advisory_file': os.path.join(DATA_DIRECTORY, 'sc_wq/vb_engine/monitorstations/beachAdvisoryResults.json'),
+        'stations_directory': os.path.join(DATA_DIRECTORY, 'sc_wq/vb_engine/monitorstations')
+      },
 
   }
 else:
@@ -95,46 +103,54 @@ else:
         'advisory_file': os.path.join(DATA_DIRECTORY, 'sc_mb/monitorstations/beachAdvisoryResults.json'),
         'stations_directory': os.path.join(DATA_DIRECTORY, 'sc_mb/monitorstations')
       },
-      'charleston':
-        {
-          'prediction_file': os.path.join(DATA_DIRECTORY, 'charleston/Predictions.json'),
-          'advisory_file': os.path.join(DATA_DIRECTORY, 'charleston/monitorstations/beach_advisories.json'),
-          'stations_directory': os.path.join(DATA_DIRECTORY, 'charleston/monitorstations')
-        },
-        'killdevilhills':
-        {
-          'prediction_file': os.path.join(DATA_DIRECTORY, 'kdh/Predictions.json'),
-          'advisory_file': os.path.join(DATA_DIRECTORY, 'kdh/monitorstations/kdh_beach_advisories.json'),
-          'stations_directory': os.path.join(DATA_DIRECTORY, 'kdh/monitorstations')
-        },
-        'follybeach':
-          {
-            'prediction_file': os.path.join(DATA_DIRECTORY, 'FollyBeach-WaterQuality/data/test_outputs/Predictions.json'),
-            'advisory_file': os.path.join(DATA_DIRECTORY, 'FollyBeach-WaterQuality/data/test_outputs/beach_advisories.json'),
-            'stations_directory': os.path.join(DATA_DIRECTORY, 'FollyBeach-WaterQuality/data/test_outputs/'),
-            'camera_statistics': os.path.join(DATA_DIRECTORY, 'FollyBeach-WaterQuality/data/camera/summary_data.json'),
-            'shellfish_closures': os.path.join(DATA_DIRECTORY, 'FollyBeach-WaterQuality/data/shellfish/shellfish_closures.json'),
-            'ripcurrents': os.path.join(DATA_DIRECTORY, 'sc_folly_beach/forecasts.json')
-          },
-        'sarasota':
-          {
-            'prediction_file': os.path.join(DATA_DIRECTORY, 'fl_wq/Predictions.json'),
-            'advisory_file': os.path.join(DATA_DIRECTORY, 'fl_wq/monitorstations/beachAdvisoryResults.json'),
-            'stations_directory': os.path.join(DATA_DIRECTORY, 'fl_wq/monitorstations'),
-            'ripcurrents': os.path.join(DATA_DIRECTORY, 'sarasota/forecasts.json')
-        },
-        'radioisland':
-          {
-            'prediction_file': os.path.join(DATA_DIRECTORY, 'radioisland/Predictions.json'),
-            'advisory_file': os.path.join(DATA_DIRECTORY, 'radioisland/monitorstations/radioisland_beach_advisories.json'),
-            'stations_directory': os.path.join(DATA_DIRECTORY, 'radioisland/monitorstations')
-          },
-          'midlands':
-            {
-              'prediction_file': '',
-              'advisory_file': os.path.join(DATA_DIRECTORY, 'sc_rivers/beachAdvisoryResults.json'),
-              'stations_directory': os.path.join(DATA_DIRECTORY, 'sc_rivers/monitorstations')
-            },
+    'charleston':
+      {
+        'prediction_file': os.path.join(DATA_DIRECTORY, 'charleston/Predictions.json'),
+        'advisory_file': os.path.join(DATA_DIRECTORY, 'charleston/monitorstations/beach_advisories.json'),
+        'stations_directory': os.path.join(DATA_DIRECTORY, 'charleston/monitorstations')
+      },
+    'killdevilhills':
+      {
+        'prediction_file': os.path.join(DATA_DIRECTORY, 'kdh/Predictions.json'),
+        'advisory_file': os.path.join(DATA_DIRECTORY, 'kdh/monitorstations/kdh_beach_advisories.json'),
+        'stations_directory': os.path.join(DATA_DIRECTORY, 'kdh/monitorstations')
+      },
+    'follybeach':
+      {
+        'prediction_file': os.path.join(DATA_DIRECTORY, 'FollyBeach-WaterQuality/data/test_outputs/Predictions.json'),
+        'advisory_file': os.path.join(DATA_DIRECTORY,
+                                      'FollyBeach-WaterQuality/data/test_outputs/beach_advisories.json'),
+        'stations_directory': os.path.join(DATA_DIRECTORY, 'FollyBeach-WaterQuality/data/test_outputs/'),
+        'camera_statistics': os.path.join(DATA_DIRECTORY, 'FollyBeach-WaterQuality/data/camera/summary_data.json'),
+        'shellfish_closures': os.path.join(DATA_DIRECTORY,
+                                           'FollyBeach-WaterQuality/data/shellfish/shellfish_closures.json'),
+        'ripcurrents': os.path.join(DATA_DIRECTORY, 'sc_folly_beach/forecasts.json')
+      },
+    'sarasota':
+      {
+        'prediction_file': os.path.join(DATA_DIRECTORY, 'fl_wq/Predictions.json'),
+        'advisory_file': os.path.join(DATA_DIRECTORY, 'fl_wq/monitorstations/beachAdvisoryResults.json'),
+        'stations_directory': os.path.join(DATA_DIRECTORY, 'fl_wq/monitorstations'),
+        'ripcurrents': os.path.join(DATA_DIRECTORY, 'sarasota/forecasts.json')
+      },
+    'radioisland':
+      {
+        'prediction_file': os.path.join(DATA_DIRECTORY, 'radioisland/Predictions.json'),
+        'advisory_file': os.path.join(DATA_DIRECTORY, 'radioisland/monitorstations/radioisland_beach_advisories.json'),
+        'stations_directory': os.path.join(DATA_DIRECTORY, 'radioisland/monitorstations')
+      },
+    'midlands':
+      {
+        'prediction_file': '',
+        'advisory_file': os.path.join(DATA_DIRECTORY, 'sc_rivers/beachAdvisoryResults.json'),
+        'stations_directory': os.path.join(DATA_DIRECTORY, 'sc_rivers/monitorstations')
+      },
+    'myrtlebeach':
+      {
+        'prediction_file': os.path.join(DATA_DIRECTORY, 'sc_mb/Predictions.json'),
+        'advisory_file': os.path.join(DATA_DIRECTORY, 'sc_mb/monitorstations/beachAdvisoryResults.json'),
+        'stations_directory': os.path.join(DATA_DIRECTORY, 'sc_mb/monitorstations')
+      },
 
   }
 
