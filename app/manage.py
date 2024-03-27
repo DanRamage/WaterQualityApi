@@ -414,22 +414,21 @@ def get_shellcast_sites(params):
   #from .ShellcastModels import NCDMFLease
   '''
   follybeach
-  "32.570628 -79.986481,32.750204 -79.807029"
+  "32.597135 -79.953577,32.750204 -79.807029"
   charleston
   "32.63065586523308 -79.97283360206296,32.85535922569687 -79.8016601374026"
-
+  https://shellcast-sc-dot-ncsu-shellcast.appspot.com/map
   Kill devil hills:
   LL: -75.851530, 35.838785
   UR: -75.589265,  36.145002
   https://ncsu-shellcast.appspot.com/static/cmu_bounds.geojson
 
-  charleston
-    32.688589 -80.090126,32.688589 -80.090126
-    "https://shellcast-sc-dot-ncsu-shellcast.appspot.com/static/sc_cmu_bounds.geojson
   SC Myrtle Beach:
   URL: https://shellcast-sc-dot-ncsu-shellcast.appspot.com/static/cmu_bounds.geojson
   "33.401803 -79.475394,33.844950 -77.916390" 
   
+  RadioIsland
+  "34.608254 -76.940818,34.871397,-76.420530"
   SQL SNippets to DELETE shell_cast records:
   DELETE FROM shell_cast
     WHERE shell_cast.sample_site_id IN (
