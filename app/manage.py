@@ -246,15 +246,22 @@ def import_sample_data(params):
 #This will loop through all the sites and reverse geocode them. This is useful so we can have the zipcode, city, state info
 #for sites.
 @app.cli.command('reverse_geocode_sites')
-@click.option('--params', nargs=1)
+@click.option('--params', nargs=2)
 def reverse_geocode_sites(params):
   api_key = '5465cd37823048e9952b31a613539fe5'
-  URL = 'https://api.geoapify.com/v1/geocode/reverse?lat={latitude}4&lon={longitude}&api_key={api_key}'
+  URL = 'https://api.geoapify.com/v1/geocode/reverse?lat={latitude}&lon={longitude}&api_key={api_key}'
   start_time = time.time()
   init_logging(app)
-  results_file = params
+  results_file = params[0]
+  location = params[1]
   current_app.logger.debug("reverse_geocode_sites started file: %s" % (results_file))
   try:
+    if location:
+      sample_sites = db.session.query(Sample_Site) \
+        .join(Project_Area, Project_Area.id == Sample_Site.project_site_id)\
+        .filter(Project_Area.area_name == location) \
+        .all()
+    else:
       sample_sites = db.session.query(Sample_Site) \
         .join(Project_Area, Project_Area.id == Sample_Site.project_site_id)\
         .order_by(Project_Area.area_name)\
@@ -272,12 +279,17 @@ def reverse_geocode_sites(params):
           try:
             url = URL.format(latitude=site.latitude, longitude=site.longitude, api_key=api_key)
             req = requests.get(url)
+            row_update_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             if req.status_code == 200:
               geocode = req.json()
               geo_data.append(geocode)
+              site.row_update_date = row_update_date
               site.state_abbreviation = geocode['features'][0]['properties']['state_code']
               site.county = geocode['features'][0]['properties']['county']
-              site.city = geocode['features'][0]['properties']['city']
+              if 'city' in geocode['features'][0]['properties']:
+                site.city = geocode['features'][0]['properties']['city']
+              else:
+                current_app.logger.error(f"Site: {site.site_name} didn't not reverse geocode a city.")
               if 'postcode' in geocode['features'][0]['properties']:
                 site.post_code = geocode['features'][0]['properties']['postcode']
                 previous_postcode = site.post_code

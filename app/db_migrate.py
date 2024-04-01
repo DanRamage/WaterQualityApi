@@ -297,6 +297,46 @@ class usgs_sites(db.Model):
   sample_site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id))
   sample_site_name = db.relationship('Sample_Site', backref='usgs_sites', foreign_keys=[sample_site_id])
 
+class BeachAccess(db.Model):
+  __table_name__ = 'beach_access'
+  id = db.Column(db.Integer, primary_key=True)
+  row_entry_date = db.Column(db.String(32))
+  row_update_date = db.Column(db.String(32))
+
+  county = db.Column(db.String(32), nullable=True)
+  parking_spaces = db.Column(db.Integer, nullable=True)
+  parking_type = db.Column(db.String(32), nullable=True)
+  parking_fee  = db.Column(db.String(32), nullable=True)
+  ada_parking = db.Column(db.String(8), nullable=True)
+  ada_accessible = db.Column(db.String(8), nullable=True)
+  rv_parking = db.Column(db.String(8), nullable=True)
+  rv_spaces = db.Column(db.String(8), nullable=True)
+  restrooms = db.Column(db.String(8), nullable=True)
+  showers = db.Column(db.String(8), nullable=True)
+  trash_cans = db.Column(db.String(8), nullable=True)
+  recycling = db.Column(db.String(8), nullable=True)
+  public_transportation = db.Column(db.String(8), nullable=True)
+  type_of_access_path = db.Column(db.String(32), nullable=True)
+  pet_regulations = db.Column(db.String(32), nullable=True)
+  lifeguard = db.Column(db.String(8), nullable=True)
+  access_sign = db.Column(db.String(8), nullable=True)
+  consessions = db.Column(db.String(8), nullable=True)
+  adopt_a_beach = db.Column(db.String(8), nullable=True)
+  parking = db.Column(db.String(8), nullable=True)
+  beach_name = db.Column(db.String(32), nullable=True)
+  access_name = db.Column(db.String(32), nullable=True, index=True)
+  location_address = db.Column(db.String(64), nullable=True)
+  area = db.Column(db.String(32), nullable=True)
+  adminstrative_body = db.Column(db.String(32), nullable=True)
+  general_url = db.Column(db.String(2048))
+  regulations_url = db.Column(db.String(2048))
+  web_cam_url = db.Column(db.String(2048))
+  region = db.Column(db.String(32), nullable=True)
+  notes = db.Column(db.String(1024))
+  #Relations to the sample site that uses this site.
+  sample_site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id), index=True)
+  sample_site_name = db.relationship('Sample_Site', backref='beach_access', foreign_keys=[sample_site_id])
+
 # Define models
 roles_users = db.Table(
     'roles_users',

@@ -36,7 +36,8 @@ from .wq_models import Project_Area, \
   BeachAmbassador, \
   WebCoos, \
   usgs_sites, \
-  ShellCast
+  ShellCast, \
+  BeachAccess
 
 
 def locate_element(list, filter):
@@ -1332,6 +1333,18 @@ class SitesDataAPI(BaseAPI):
       current_app.logger.exception(e)
     return properties
 
+  def get_beach_access_properties(self, siteid):
+    properties = None
+    try:
+      beach_access = db.session.query(BeachAccess)\
+      .filter(BeachAccess.sample_site_id == siteid)\
+      .one()
+
+      properties = beach_access.to_json()
+    except Exception as e:
+      current_app.logger.exception(e)
+    return properties
+
   def get(self, sitename):
     start_time = time.time()
     current_app.logger.debug('IP: %s SiteDataAPI get for site: %s request args: %s' % (request.remote_addr, sitename, str(request.args)))
@@ -1449,6 +1462,11 @@ class SitesDataAPI(BaseAPI):
             property, site_geometry = self.get_shellcast_site_properties(site_rec.id)
             if property is not None:
               properties[site_type] = property
+          elif site_type == "Beach Access":
+            property = self.get_beach_access_properties(site_rec.id)
+            if property is not None:
+              properties[site_type] = property
+
           extents_json = None
           if len(site_rec.extents):
             properties['extents_geometry'] = []
