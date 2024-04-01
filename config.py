@@ -1,7 +1,7 @@
 import os
 
-FLASK_DEBUG = True
-PYCHARM_DEBUG= True
+FLASK_DEBUG = False
+PYCHARM_DEBUG= False
 # Create dummy secrey key so we can use sessions
 SECRET_KEY = '123456790'
 SECRET_KEY_FILE = 'secret_key'
@@ -91,6 +91,12 @@ if not PYCHARM_DEBUG:
   }
 else:
   SITES_CONFIG = {
+    'murrellsinlet':
+      {
+        'prediction_file': '',
+        'advisory_file': '',
+        'stations_directory': ''
+      },
     'myrtlebeach':
       {
         'prediction_file': os.path.join(DATA_DIRECTORY, 'sc_mb/Predictions.json'),
@@ -151,6 +157,12 @@ else:
         'advisory_file': os.path.join(DATA_DIRECTORY, 'sc_mb/monitorstations/beachAdvisoryResults.json'),
         'stations_directory': os.path.join(DATA_DIRECTORY, 'sc_mb/monitorstations')
       },
+    'murrellsinlet':
+      {
+        'prediction_file': '',
+        'advisory_file': '',
+        'stations_directory': ''
+      }
 
   }
 
