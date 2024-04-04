@@ -947,6 +947,12 @@ class usgs_sites_view(base_view):
   form_columns = ['sample_site_name', 'usgs_site_id', 'parameters_to_query', 'row_entry_date', 'row_update_date']
   column_filters = ['sample_site_name', 'usgs_site_id']
 
+class data_timeouts_view(base_view):
+  column_list = ['id', 'name', 'hours_valid', 'project_site', 'site_type', 'row_entry_date', 'row_update_date']
+  form_columns = ['name', 'hours_valid', 'project_site', 'site_type', 'row_entry_date', 'row_update_date']
+  column_filters = ['project_site', 'site_type']
+
+
 class wktTextField(fields.TextAreaField):
   def process_data(self, value):
     self.data = wkb_loads(value)
@@ -1345,6 +1351,26 @@ class SitesDataAPI(BaseAPI):
       current_app.logger.exception(e)
     return properties
 
+  def get_data_expirations(self, sitename):
+    try:
+      timeouts = db.session.query(BeachAccess)\
+        .join(Project_Area, Project_Area.id == Advisory_Limits.site_id) \
+        .filter(Project_Area.area_name == sitename) \
+        .all()
+      return timeouts
+    except Exception as e:
+      current_app.logger.exception(e)
+    return None
+  def is_valid_project_area(self, project_area_name):
+    try:
+      project_area_rec = db.session.query(Project_Area)\
+        .filter(Project_Area.area_name == project_area_name)\
+        .one()
+      return True
+    except Exception as e:
+      current_app.logger.exception(e)
+    return False
+
   def get(self, sitename):
     start_time = time.time()
     current_app.logger.debug('IP: %s SiteDataAPI get for site: %s request args: %s' % (request.remote_addr, sitename, str(request.args)))
@@ -1358,16 +1384,22 @@ class SitesDataAPI(BaseAPI):
       results['project_area'] = {}
 
     try:
-      if sitename in SITES_CONFIG:
+      project_area = db.session.query(Project_Area).all()
+      if self.is_valid_project_area(sitename):
+      #if sitename in SITES_CONFIG:
         ret_code = 200
-        prediction_data = self.load_data_file(SITES_CONFIG[sitename]['prediction_file'])
-        advisory_data = self.load_data_file(SITES_CONFIG[sitename]['advisory_file'])
 
-        #Does site have shellfish data?
-        shellfish_data = self.add_shellfish_data(sitename)
+        prediction_data = None
+        advisory_data = None
+        if sitename in SITES_CONFIG:
+          prediction_data = self.load_data_file(SITES_CONFIG[sitename]['prediction_file'])
+          advisory_data = self.load_data_file(SITES_CONFIG[sitename]['advisory_file'])
+
+          #Does site have shellfish data?
+          shellfish_data = self.add_shellfish_data(sitename)
 
         sample_sites = self.get_sample_sites(sitename, station=self.station, site_types=self.site_type)
-
+        data_expirations = self.get_data_expirations(sitename)
         if self.return_wq_limits:
           limits = self.get_advisory_limits(sitename)
           if limits is not None:

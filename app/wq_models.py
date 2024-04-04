@@ -376,3 +376,18 @@ class BeachAccess(db.Model):
             if val is not None:
                 beach_access[member] = getattr(self, member)
         return beach_access
+
+class DataTimeouts(db.Model):
+  __table_name__ = 'data_timeouts'
+  id = db.Column(db.Integer, primary_key=True)
+  row_entry_date = db.Column(db.String(32))
+  row_update_date = db.Column(db.String(32))
+
+  name = db.Column(db.String(32))
+  hours_valid = db.Column(db.Integer)
+
+  site_type_id = db.Column(db.Integer, db.ForeignKey(Site_Type.id))
+  site_type = db.relationship('Site_Type', backref='data_timeouts', foreign_keys=[site_type_id])
+
+  project_site_id = db.Column('project_site_id', db.Integer, db.ForeignKey('project_area.id'))
+  project_site = db.relationship('Project_Area', backref='data_timeouts')

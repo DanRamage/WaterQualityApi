@@ -70,7 +70,8 @@ def build_flask_admin(app):
     collection_program_type, \
     beach_ambassador_sites, \
     webcoos_sites, \
-    usgs_sites_view
+    usgs_sites_view, \
+    data_timeouts_view
 
   from .admin_models import User, Role
   from .wq_models import Project_Area, \
@@ -87,7 +88,8 @@ def build_flask_admin(app):
     Collection_Program_Type, \
     BeachAmbassador, \
     WebCoos, \
-    usgs_sites
+    usgs_sites, \
+    DataTimeouts
 
   login_manager.init_app(app)
   # Create admin
@@ -119,6 +121,7 @@ def build_flask_admin(app):
 
 
   admin.add_view(popup_site_view(Sample_Site, db.session, name="Popup Site", endpoint="popup_site_view"))
+  admin.add_view(data_timeouts_view(DataTimeouts, db.session, name="Data Expiration Times"))
 
   return
 

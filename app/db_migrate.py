@@ -337,6 +337,22 @@ class BeachAccess(db.Model):
   sample_site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id), index=True)
   sample_site_name = db.relationship('Sample_Site', backref='beach_access', foreign_keys=[sample_site_id])
 
+class DataTimeouts(db.Model):
+  __table_name__ = 'data_timeouts'
+  id = db.Column(db.Integer, primary_key=True)
+  row_entry_date = db.Column(db.String(32))
+  row_update_date = db.Column(db.String(32))
+
+  name = db.Column(db.String(32))
+  hours_valid = db.Column(db.Integer)
+
+  site_type_id = db.Column(db.Integer, db.ForeignKey(Site_Type.id))
+  site_type = db.relationship('Site_Type', backref='data_timeouts', foreign_keys=[site_type_id])
+
+  project_site_id = db.Column('project_site_id', db.Integer, db.ForeignKey('project_area.id'))
+  project_site = db.relationship('Project_Area', backref='data_timeouts')
+
+
 # Define models
 roles_users = db.Table(
     'roles_users',
