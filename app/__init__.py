@@ -133,7 +133,8 @@ def build_url_rules(app):
     CollectionProgramInfoAPI, \
     EPAUVIndex,\
     BCRSQuery, \
-    HTBSitesAPI
+    HTBSitesAPI, \
+    SiteDataAPI
 
   #Page rules
   app.add_url_rule('/', view_func=ShowIntroPage.as_view('htb_intro'))
@@ -145,6 +146,11 @@ def build_url_rules(app):
   app.add_url_rule('/api/v1/<string:sitename>/collectionprograminfo', view_func=CollectionProgramInfoAPI.as_view('collection_program_info'), methods=['GET'])
   app.add_url_rule('/api/v1/epa_uv_index', view_func=EPAUVIndex.as_view('epa_uv_index'), methods=['GET'])
   app.add_url_rule('/api/v1/bcrs_sites', view_func=BCRSQuery.as_view('bcrs_query'), methods=['GET'])
+
+  #The V2 paths will return data in GeoJSON still, but the properties will be a json-timeseries to try and
+  # consolidate formats.
+  app.add_url_rule('/api/v2/<string:sitename>/<string:site>/data', view_func=SiteDataAPI.as_view('site_data'),
+                   methods=['GET'])
 
   #API Help Page
   @app.route('/api/v1/docs')

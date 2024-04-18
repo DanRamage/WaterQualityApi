@@ -162,7 +162,13 @@ else:
         'prediction_file': '',
         'advisory_file': '',
         'stations_directory': ''
-      }
+      },
+    'gillscreek':
+      {
+        'prediction_file': '',
+        'advisory_file': '',
+        'stations_directory': os.path.join(DATA_DIRECTORY, 'gillscreek/monitorstations')
+      },
 
   }
 

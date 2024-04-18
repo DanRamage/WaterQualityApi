@@ -12,13 +12,16 @@ import requests
 import time
 import json
 import geojson
-from datetime import datetime
+from datetime import datetime, timedelta
+import pytz
+import dateparser
 from wtforms import form, fields, validators
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import exc
 from shapely.wkb import loads as wkb_loads
 from shapely.wkt import loads as wkt_loads
 from shapely import from_wkt, to_geojson, get_coordinates
+from json_timeseries import TsRecord, TimeSeries, JtsDocument
 
 from config import VALID_UPDATE_ADDRESSES, SITES_CONFIG, SITE_TYPE_DATA_VALID_TIMEOUTS
 
@@ -46,105 +49,6 @@ def locate_element(list, filter):
       return ndx
   return -1
 
-
-'''
-def build_advisory_feature(sample_site_rec, sample_date, values):
-  beachadvisories = {
-    'date': '',
-    'station': sample_site_rec.site_name,
-    'value': ''
-  }
-  if len(values):
-    beachadvisories = {
-      'date': sample_date,
-      'station': sample_site_rec.site_name,
-      'value': values
-    }
-  feature = {
-    'type': 'Feature',
-    'geometry': {
-      'type': 'Point',
-      'coordinates': [sample_site_rec.longitude, sample_site_rec.latitude]
-    },
-    'properties': {
-      'locale': sample_site_rec.description,
-      'sign': False,
-      'station': sample_site_rec.site_name,
-      'epaid': sample_site_rec.epa_id,
-      'beach': sample_site_rec.county,
-      'desc': sample_site_rec.description,
-      'has_advisory': sample_site_rec.has_current_advisory,
-      'station_message': sample_site_rec.advisory_text,
-      'len': '',
-      'test': {
-        'beachadvisories': beachadvisories
-      }
-    }
-  }
-  extents_json = None
-  if len(sample_site_rec.extents):
-    extents_json = geojson.Feature(geometry=sample_site_rec.extents[0].wkt_extent, properties={})
-    feature['properties']['extents_geometry'] = extents_json
-
-  return feature
-
-def build_site_feature(site_rec):
-  feature = {
-    'type': 'Feature',
-    'geometry': {
-      'type': 'Point',
-      'coordinates': [site_rec.longitude, site_rec.latitude]
-    },
-    'properties': {
-      'locale': site_rec.description,
-      'station': site_rec.site_name,
-      'beach': site_rec.county,
-      'desc': site_rec.description,
-      'station_message': site_rec.advisory_text,
-    }
-  }
-  if site_rec.site_type is not None:
-    feature['properties']['site_type'] = site_rec.site_type.name
-  return feature
-
-
-def build_prediction_feature(sample_site_rec, sample_date, model_results):
-  tests = []
-  if len(model_results):
-    for model_result in model_results:
-      tests.append({
-        'data': model_results['data'],
-        'name': model_result['name'],
-        'p_level':model_result['p_level'],
-        'p_value': model_result['p_value'],
-      })
-  feature = {
-    "type": "Feature",
-    'geometry': {
-      'type': 'Point',
-      'coordinates': [sample_site_rec.longitude, sample_site_rec.latitude]
-    },
-    "properties": {
-      "ensemble": "None",
-      'station': sample_site_rec.site_name,
-      'desc': sample_site_rec.description,
-      'has_advisory': sample_site_rec.has_current_advisory,
-      "site_message": {
-        "message": "",
-        "severity": ""
-      },
-      'tests': tests
-    }
-  }
-  return feature
-
-def build_feature_collection(features):
-  feature_collection = {
-    'features': features,
-    'type': 'FeatureCollection'
-  }
-  return feature_collection
-'''
 
 def BBOXtoPolygon(bbox):
   try:
@@ -428,7 +332,7 @@ class BaseAPI(MethodView):
     }
     return json_error
 
-
+'''
 class StationDataAPI(MethodView):
   def post(self, sitename=None, station_name=None):
 
@@ -598,7 +502,7 @@ class StationDataAPI(MethodView):
     results = geojson.dumps(json_data, separators=(',', ':'))
     current_app.logger.debug("get_requested_station_data finished in %s seconds" % (time.time() - start_time))
     return results
-
+'''
 class StationDataUpdateAPI(MethodView):
   def get(self, sitename=None, station_name=None):
     start_date = ''
@@ -1370,7 +1274,106 @@ class SitesDataAPI(BaseAPI):
     except Exception as e:
       current_app.logger.exception(e)
     return False
+  def build_site_type_properties(self, location_name, site_rec, properties):
+    if site_rec.site_type.name is not None:
+      site_type = site_rec.site_type.name
+    else:
+      site_type = 'Water Quality'
 
+    if site_type == 'Water Quality':
+      if location_name in SITES_CONFIG:
+        prediction_data = self.load_data_file(SITES_CONFIG[location_name]['prediction_file'])
+        advisory_data = self.load_data_file(SITES_CONFIG[location_name]['advisory_file'])
+
+      properties[site_type] = {'issues_advisories': site_rec.issues_advisories,
+                               'under_advisory': site_rec.has_current_advisory,
+                               'current_advisory_text': site_rec.advisory_text
+                               }
+      if prediction_data is not None:
+        prediction_sites = prediction_data['contents']['stationData']['features']
+        # Find if the site has a prediction
+        ndx = locate_element(prediction_sites, lambda wq_site: wq_site['properties']['station'] == site_rec.site_name)
+        if ndx != -1:
+          try:
+            data_timeout = SITE_TYPE_DATA_VALID_TIMEOUTS['Nowcast']
+            if type(prediction_data['contents']['run_date']) is not list:
+              run_date = prediction_data['contents']['run_date']
+            else:
+              run_date = prediction_data['contents']['run_date'][0]
+            properties[site_type]['nowcasts'] = {'date': run_date,
+                                                 'level': prediction_sites[ndx]['properties']['ensemble'],
+                                                 'hours_data_valid': data_timeout
+                                                 }
+          except Exception as e:
+            current_app.logger.exception(e)
+      if advisory_data is not None:
+        advisory_sites = advisory_data['features']
+        # Find if the site has advisory data
+        ndx = locate_element(advisory_sites, lambda wq_site: wq_site['properties']['station'] == site_rec.site_name)
+        if ndx != -1:
+          try:
+            if len(advisory_sites[ndx]['properties']['test']['beachadvisories']):
+              data_timeout = SITE_TYPE_DATA_VALID_TIMEOUTS[site_type]
+              properties[site_type]['advisory'] = {
+                'date': advisory_sites[ndx]['properties']['test']['beachadvisories']['date'],
+                'value': advisory_sites[ndx]['properties']['test']['beachadvisories']['value'],
+                'hours_data_valid': data_timeout}
+          except Exception as e:
+            current_app.logger.exception(e)
+
+    elif site_type == 'Shellfish':
+      # Does site have shellfish data?
+      shellfish_data = self.add_shellfish_data(location_name)
+      if shellfish_data is not None:
+        data_timeout = SITE_TYPE_DATA_VALID_TIMEOUTS[site_type]
+        property = self.create_shellfish_properties(shellfish_data, site_rec, data_timeout)
+        if property is not None:
+          properties[site_type] = property
+
+    elif site_type == 'Camera Site':
+      property = self.create_camera_properties(site_rec.id)
+      if property is not None:
+        properties[site_type] = property
+
+    elif site_type == 'Beach Ambassador':
+      property = self.get_bcrs_site_properties(site_rec.id)
+      if property is not None:
+        properties[site_type] = property
+
+    elif site_type == 'Shellcast':
+      property, site_geometry = self.get_shellcast_site_properties(site_rec.id)
+      if property is not None:
+        properties[site_type] = property
+    elif site_type == "Beach Access":
+      property = self.get_beach_access_properties(site_rec.id)
+      if property is not None:
+        properties[site_type] = property
+
+    elif site_type == "Gills Creek Water Quality":
+
+      properties[site_type] = {}
+      site_data_filename = os.path.join(SITES_CONFIG[location_name]['stations_directory'], f"{site_rec.site_name}.json")
+      json_data = self.load_data_file(site_data_filename)
+      if json_data is not None:
+        latest_date = json_data['properties']['header']['endTime']
+        data_recs = json_data['properties']['data']
+        latest_data = next((item for item in data_recs if item["ts"] == latest_date), None)
+        latest_record = json_data['properties']
+        latest_record['header']['startTime'] = latest_record['header']['endTime'] = latest_data['ts']
+        latest_record['header']['recordCount'] = 1
+        #Now replace the data with the latest record, getting rid of the rest.
+        latest_record['data'] = [latest_data]
+        properties[site_type] = {'timeseries': latest_record}
+
+      '''
+      try:
+        with open(site_data_filename, "r") as data_file_obj:
+          json_data = json.load(data_file_obj)
+          if json_data is not None:
+            properties[site_type] = json_data['properties']
+      except Exception as e:
+        current_app.logger.exception(e)
+      '''
   def get(self, sitename):
     start_time = time.time()
     current_app.logger.debug('IP: %s SiteDataAPI get for site: %s request args: %s' % (request.remote_addr, sitename, str(request.args)))
@@ -1386,18 +1389,7 @@ class SitesDataAPI(BaseAPI):
     try:
       project_area = db.session.query(Project_Area).all()
       if self.is_valid_project_area(sitename):
-      #if sitename in SITES_CONFIG:
         ret_code = 200
-
-        prediction_data = None
-        advisory_data = None
-        if sitename in SITES_CONFIG:
-          prediction_data = self.load_data_file(SITES_CONFIG[sitename]['prediction_file'])
-          advisory_data = self.load_data_file(SITES_CONFIG[sitename]['advisory_file'])
-
-          #Does site have shellfish data?
-          shellfish_data = self.add_shellfish_data(sitename)
-
         sample_sites = self.get_sample_sites(sitename, station=self.station, site_types=self.site_type)
         data_expirations = self.get_data_expirations(sitename)
         if self.return_wq_limits:
@@ -1436,6 +1428,9 @@ class SitesDataAPI(BaseAPI):
           #We may have different geometry, such as polygon for shellcast, so the site_geometry is then
           #changed.
           site_geometry = geojson.Point((site_rec.longitude, site_rec.latitude))
+
+          self.build_site_type_properties(sitename, site_rec, properties)
+          '''
           #Default sites are water quality sites, so we will check the predicition and advisory data and add to our response.
           if site_type == 'Water Quality':
             properties[site_type] = {'issues_advisories': site_rec.issues_advisories,
@@ -1498,7 +1493,7 @@ class SitesDataAPI(BaseAPI):
             property = self.get_beach_access_properties(site_rec.id)
             if property is not None:
               properties[site_type] = property
-
+          '''
           extents_json = None
           if len(site_rec.extents):
             properties['extents_geometry'] = []
@@ -1552,6 +1547,16 @@ class SiteBacteriaDataAPI(MethodView):
     except (IOError, Exception) as e:
       current_app.logger.exception(e)
     return None
+
+  def is_valid_project_area(self, project_area_name):
+    try:
+      project_area_rec = db.session.query(Project_Area)\
+        .filter(Project_Area.area_name == project_area_name)\
+        .one()
+      return True
+    except Exception as e:
+      current_app.logger.exception(e)
+    return False
 
   def get_requested_station_data(self, station, start_date_obj, end_date_obj, station_directory):
     start_time = time.time()
@@ -1614,7 +1619,8 @@ class SiteBacteriaDataAPI(MethodView):
     results = {}
 
     try:
-      if sitename in SITES_CONFIG:
+      if self.is_valid_project_area(sitename):
+      #if sitename in SITES_CONFIG:
         start_date_obj = None
         end_date_obj = None
         if 'startdate' in request.args:
@@ -1703,6 +1709,249 @@ class SiteBacteriaDataAPI(MethodView):
     current_app.logger.debug('SiteBacteriaDataAPI get for site: %s finished in %f seconds' % (sitename, time.time() - start_time))
     return (results, ret_code, {'Content-Type': 'application/json'})
 
+
+class SiteDataAPI(MethodView):
+  def load_data_file(self, filename):
+    current_app.logger.debug("load_data_file Started.")
+
+    try:
+      current_app.logger.debug("Opening file: %s" % (filename))
+      with open(filename, 'r') as data_file:
+        return json.load(data_file)
+
+    except (IOError, Exception) as e:
+      current_app.logger.exception(e)
+    return None
+
+  def is_valid_project_area(self, project_area_name):
+    try:
+      project_area_rec = db.session.query(Project_Area)\
+        .filter(Project_Area.area_name == project_area_name)\
+        .one()
+      return True
+    except Exception as e:
+      current_app.logger.exception(e)
+    return False
+
+  def get_requested_station_data(self, site_rec, start_date_obj, end_date_obj, station_directory, convert_to):
+    start_time = time.time()
+    current_app.logger.debug("get_requested_station_data Station: %s Start Date: %s End Date: %s"\
+                             % (site_rec.site_name, start_date_obj, end_date_obj))
+
+    results = []
+    try:
+      filepath = os.path.join(station_directory, '%s.json' % (site_rec.site_name))
+      current_app.logger.debug("Opening station file: %s" % (filepath))
+
+      with open(filepath, "r") as json_data_file:
+        stationJson = geojson.load(json_data_file)
+
+        if site_rec.site_type.name == 'Water Quality' and convert_to == 'json-timeseries':
+
+          advisoryList = stationJson['properties']['test']['beachadvisories']
+          data_ts = TimeSeries(identifier='enterococcus',
+                               name='enterococcus',
+                               units='CFU/100mL',
+                               data_type='NUMBER')
+          results.append(data_ts)
+          for ndx in range(len(advisoryList)):
+            try:
+              tst_date_obj = dateparser.parse(advisoryList[ndx]['date'])
+            except ValueError as e:
+              current_app.logger.exception(e)
+              tst_date_obj = None
+
+            if tst_date_obj is not None and (start_date_obj <= tst_date_obj < end_date_obj):
+              result = advisoryList[ndx]
+              value = result['value']
+              try:
+                value = float(value)
+              except (Exception, ValueError) as e:
+                value = result['value']
+                current_app.logger.error("Converting value to float: %s (%s) had a problem, attemping cleaning."\
+                                         % (value, type(value)))
+                if type(value) is list:
+                  current_app.logger.error("Value is a list, getting first element")
+                  value = value[0]
+                try:
+                  value = float(value)
+                except (Exception, ValueError) as e:
+                  current_app.logger.error("Converting value to float: %s had a problem" % (value))
+                  value = 10
+              ts_rec = TsRecord(**{'timestamp': tst_date_obj,
+                                   'value': value})
+              data_ts.insert(ts_rec)
+
+        else:
+          json_data = json.dumps(stationJson['properties'])
+          ts_doc = JtsDocument.fromJSON(json_data)
+          #Get the most current record if start and end not provided.
+          if start_date_obj is None and end_date_obj is None:
+            for series in ts_doc.series:
+              latest_rec_datetime = series.records[-1].timestamp
+              start_date_obj = end_date_obj = latest_rec_datetime
+
+          #Loop through getting the records that fall within the time frame.
+          for series in ts_doc.series:
+            for rec in series.records:
+              matching_recs = []
+              if start_date_obj <= rec.timestamp <= end_date_obj:
+                matching_recs.append(rec)
+            results.append(TimeSeries(identifier=series.identifier,
+                                      name=series.name,
+                                      data_type=series.data_type,
+                                      records=matching_recs))
+
+      return results
+    except (IOError, ValueError, Exception) as e:
+      current_app.logger.exception(e)
+
+    return None
+
+
+  def convert_nowcast_data(self, sitename: str, site_rec: Sample_Site, convert_to: str):
+    '''
+    This site takes the current jsonfile format to a json-timeseries to try and unify the output json records.
+    :param sitename:
+    :param site_rec:
+    :return:
+    '''
+
+    prediction_data = self.load_data_file(SITES_CONFIG[sitename]['prediction_file'])
+    if prediction_data is not None:
+      if convert_to == 'json-timeseries':
+        site = site_rec.site_name
+        prediction_sites = prediction_data['contents']['stationData']['features']
+        # Find if the site has a prediction
+        ndx = locate_element(prediction_sites, lambda wq_site: wq_site['properties']['station'] == site)
+        if ndx != -1:
+          try:
+            data_timeout = SITE_TYPE_DATA_VALID_TIMEOUTS['Nowcast']
+            nowcast_ts = TimeSeries(identifier='nowcast',
+                                    name='nowcast',
+                                    data_type='TEXT')
+            prediction_date = dateparser.parse(prediction_data['contents']['run_date'])
+            nowcast_rec = TsRecord(**{'timestamp': prediction_date,
+                                   'value': prediction_sites[ndx]['properties']['ensemble']})
+            nowcast_ts.insert(nowcast_rec)
+
+            #jts_document.addSeries(nowcast_ts)
+            return nowcast_ts
+          except Exception as e:
+            current_app.logger.exception(e)
+    return None
+  def get_site_data(self, sitename: str, site_rec: Sample_Site, start_date: datetime, end_date: datetime, properties: {}):
+    site_type = site_rec.site_type.name
+    jts_document = JtsDocument()
+
+    if site_type == "Water Quality":
+      nowcast_data_ts = self.convert_nowcast_data(sitename, site_rec, 'json-timeseries')
+      jts_document.addSeries(nowcast_data_ts)
+
+      site_data_ts = self.get_requested_station_data(site_rec,
+                                                  start_date,
+                                                  end_date,
+                                                  SITES_CONFIG[sitename]['stations_directory'],
+                                                  'json-timeseries')
+      jts_document.addSeries(site_data_ts)
+      properties[site_rec.site_type.name] = {
+        'timeseries':  jts_document.toJSON(),
+        'hours_valid': {
+          'Nowcast': SITE_TYPE_DATA_VALID_TIMEOUTS['Nowcast'],
+          'Water Quality': SITE_TYPE_DATA_VALID_TIMEOUTS['Water Quality']
+        }
+      }
+    else:
+      site_data_ts = self.get_requested_station_data(site_rec,
+                                                     start_date,
+                                                     end_date,
+                                                     SITES_CONFIG[sitename]['stations_directory'],
+                                                     'json-timeseries')
+    jts_document = JtsDocument(site_data_ts)
+    properties[site_rec.site_type.name] = {
+      'timeseries': jts_document.toJSON(),
+      'hours_valid': {
+        'Water Quality': SITE_TYPE_DATA_VALID_TIMEOUTS['Water Quality']
+      }
+    }
+    results = geojson.Feature(id=site_rec.site_name,
+                              geometry=geojson.Point((site_rec.longitude, site_rec.latitude)),
+                              properties=properties)
+    return results
+
+
+  def get(self, sitename=None, site=None):
+    start_time = time.time()
+    current_app.logger.debug('IP: %s SiteDataAPI get for %s site: %s' % (request.remote_addr, sitename, site))
+    ret_code = 404
+    results = {}
+
+    try:
+      if self.is_valid_project_area(sitename):
+        start_date_obj = None
+        end_date_obj = None
+        if 'startdate' in request.args:
+          start_date = request.args['startdate']
+          start_date_obj = dateparser.parse(start_date)
+          start_date_obj = pytz.utc.localize(start_date_obj)
+        #else:
+          #current_app.logger.error(f"IP: {request.remote_addr} SiteDataAPI ERROR get for "
+          #                         f"{sitename} site: {site} startdate not supplied")
+          #results = build_json_error(404, "startdate parameter must be included in POST.")
+        if 'enddate' in request.args:
+          end_date = request.args['enddate']
+          end_date_obj = dateparser.parse(end_date)
+          end_date_obj = pytz.utc.localize(end_date_obj)
+        #else:
+          #current_app.logger.error(f"IP: {request.remote_addr} SiteDataAPI ERROR get for "
+          #                         f"{sitename} site: {site} enddate not supplied")
+          #results = build_json_error(404, "enddate parameter must be included in POST.")
+        try:
+          site_rec = db.session.query(Sample_Site) \
+            .join(Project_Area, Project_Area.id == Sample_Site.project_site_id) \
+            .join(Site_Type, Site_Type.id == Sample_Site.site_type_id) \
+            .filter(Sample_Site.site_name == site)\
+            .filter(Project_Area.area_name == sitename).all()
+        except exc.SQLAlchemyError as e:
+          ret_code = 404
+          results = build_json_error(404, f"Site: {site} does not exist.")
+        except Exception as e:
+          current_app.logger.exception(e)
+          ret_code = 501
+          results = build_json_error(501, 'Server encountered a problem with the query.')
+        else:
+          if len(site_rec) > 1:
+            current_app.logger.error(f"Multiple records for site: {site} returned.")
+          site_rec = site_rec[0]
+          if site_rec.site_type.name is not None:
+            site_type = site_rec.site_type.name
+          else:
+            site_type = 'Water Quality'
+          # All sites will have some base properties.
+          properties = {
+            'description': site_rec.description,
+            'site_type': site_type,
+            'site_name': site_rec.site_name,
+            'city': site_rec.city,
+            'post_code': site_rec.post_code,
+            'state_code': site_rec.state_abbreviation,
+            'county': site_rec.county
+          }
+
+          ret_code = 200
+
+          results = self.get_site_data(sitename, site_rec, start_date_obj, end_date_obj, properties)
+
+      else:
+        results = build_json_error(404, 'Site: %s not found' % (sitename))
+
+      results = geojson.dumps(results)
+    except Exception as e:
+      current_app.logger.exception(e)
+      results = build_json_error(501, 'Server experienced a procesing error')
+
+    current_app.logger.debug('SiteBacteriaDataAPI get for site: %s finished in %f seconds' % (sitename, time.time() - start_time))
+    return (results, ret_code, {'Content-Type': 'application/json'})
 class CollectionProgramInfoAPI(BaseAPI):
   def build_json(self, recs):
     result = {
