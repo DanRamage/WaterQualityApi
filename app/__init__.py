@@ -151,6 +151,8 @@ def build_url_rules(app):
   # consolidate formats.
   app.add_url_rule('/api/v2/<string:sitename>/<string:site>/data', view_func=SiteDataAPI.as_view('site_data'),
                    methods=['GET'])
+  app.add_url_rule('/api/v2/<string:sitename>/<string:site>/site', view_func=SiteDataAPI.as_view('site_display_data'),
+                   methods=['GET'])
 
   #API Help Page
   @app.route('/api/v1/docs')
