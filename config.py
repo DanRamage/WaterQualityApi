@@ -87,6 +87,12 @@ if not PYCHARM_DEBUG:
         'advisory_file': os.path.join(DATA_DIRECTORY, 'sc_wq/vb_engine/monitorstations/beachAdvisoryResults.json'),
         'stations_directory': os.path.join(DATA_DIRECTORY, 'sc_wq/vb_engine/monitorstations')
       },
+    'gillscreek':
+      {
+        'prediction_file': '',
+        'advisory_file': '',
+        'stations_directory': os.path.join(DATA_DIRECTORY, 'gillscreek/monitorstations')
+      }
 
   }
 else:
@@ -168,8 +174,7 @@ else:
         'prediction_file': '',
         'advisory_file': '',
         'stations_directory': os.path.join(DATA_DIRECTORY, 'gillscreek/monitorstations')
-      },
-
+      }
   }
 
 #Number of hours the advisory should be considered valid.
