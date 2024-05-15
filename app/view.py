@@ -2112,8 +2112,8 @@ class NormalizedSiteData:
 
           #Loop through getting the records that fall within the time frame.
           for series in ts_doc.series:
+            matching_recs = []
             for rec in series.records:
-              matching_recs = []
               if start_date_obj <= rec.timestamp <= end_date_obj:
                 matching_recs.append(rec)
             if len(matching_recs):
