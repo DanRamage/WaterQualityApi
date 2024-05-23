@@ -2120,6 +2120,7 @@ class NormalizedSiteData:
               results.append(TimeSeries(identifier=series.identifier,
                                         name=series.name,
                                         data_type=series.data_type,
+                                        units=series.units,
                                         records=matching_recs))
 
       return results, dataset_date_range
