@@ -856,6 +856,11 @@ class data_timeouts_view(base_view):
   form_columns = ['name', 'hours_valid', 'project_site', 'site_type', 'row_entry_date', 'row_update_date']
   column_filters = ['project_site', 'site_type']
 
+class shellcast_sites_view(base_view):
+    column_list = ['id', 'site_id', 'sample_site_name', 'site_url', 'description', 'wkt_extent', 'row_entry_date', 'row_update_date']
+    form_columns = ['site_id', 'sample_site_name', 'site_url', 'description', 'wkt_extent', 'row_entry_date', 'row_update_date']
+    column_filters = ['site_id', 'sample_site_name', 'site_url', 'row_entry_date', 'row_update_date']
+
 
 class wktTextField(fields.TextAreaField):
   def process_data(self, value):
@@ -1274,11 +1279,37 @@ class SitesDataAPI(BaseAPI):
     except Exception as e:
       current_app.logger.exception(e)
     return False
-  def build_site_type_properties(self, location_name, site_rec, properties):
+
+  def get_project_areas(self):
+    try:
+      project_area_rec = db.session.query(Project_Area.area_name)\
+        .all()
+      sites = [site[0] for site in project_area_rec]
+      return sites
+    except Exception as e:
+      current_app.logger.exception(e)
+    return []
+
+  def build_site_type_properties(self, location_name, site_rec):
     if site_rec.site_type.name is not None:
       site_type = site_rec.site_type.name
     else:
       site_type = 'Water Quality'
+
+    # All sites will have some base properties.
+    properties = {
+      'description': site_rec.description,
+      'site_type': site_type,
+      'site_name': site_rec.site_name,
+      'city': site_rec.city,
+      'post_code': site_rec.post_code,
+      'state_code': site_rec.state_abbreviation,
+      'county': site_rec.county
+    }
+    # The default site_geometry is going to be the Point() defined in the Sample_Site table.
+    # We may have different geometry, such as polygon for shellcast, so the site_geometry is then
+    # changed.
+    site_geometry = geojson.Point((site_rec.longitude, site_rec.latitude))
 
     if site_type == 'Water Quality':
       if location_name in SITES_CONFIG:
@@ -1344,6 +1375,7 @@ class SitesDataAPI(BaseAPI):
       property, site_geometry = self.get_shellcast_site_properties(site_rec.id)
       if property is not None:
         properties[site_type] = property
+
     elif site_type == "Beach Access":
       property = self.get_beach_access_properties(site_rec.id)
       if property is not None:
@@ -1365,15 +1397,8 @@ class SitesDataAPI(BaseAPI):
         latest_record['data'] = [latest_data]
         properties[site_type] = {'timeseries': latest_record}
 
-      '''
-      try:
-        with open(site_data_filename, "r") as data_file_obj:
-          json_data = json.load(data_file_obj)
-          if json_data is not None:
-            properties[site_type] = json_data['properties']
-      except Exception as e:
-        current_app.logger.exception(e)
-      '''
+    return properties, site_geometry
+
   def get(self, sitename):
     start_time = time.time()
     current_app.logger.debug('IP: %s SiteDataAPI get for site: %s request args: %s' % (request.remote_addr, sitename, str(request.args)))
@@ -1387,7 +1412,6 @@ class SitesDataAPI(BaseAPI):
       results['project_area'] = {}
 
     try:
-      project_area = db.session.query(Project_Area).all()
       if self.is_valid_project_area(sitename):
         ret_code = 200
         sample_sites = self.get_sample_sites(sitename, station=self.station, site_types=self.site_type)
@@ -1410,26 +1434,7 @@ class SitesDataAPI(BaseAPI):
             if area_message is not None:
               results['project_area']['message'] = area_message.message
 
-          if site_rec.site_type.name is not None:
-            site_type = site_rec.site_type.name
-          else:
-            site_type = 'Water Quality'
-          #All sites will have some base properties.
-          properties = {
-            'description': site_rec.description,
-            'site_type': site_type,
-            'site_name': site_rec.site_name,
-            'city': site_rec.city,
-            'post_code': site_rec.post_code,
-            'state_code': site_rec.state_abbreviation,
-            'county': site_rec.county
-            }
-          #The default site_geometry is going to be the Point() defined in the Sample_Site table.
-          #We may have different geometry, such as polygon for shellcast, so the site_geometry is then
-          #changed.
-          site_geometry = geojson.Point((site_rec.longitude, site_rec.latitude))
-
-          self.build_site_type_properties(sitename, site_rec, properties)
+          properties, site_geometry = self.build_site_type_properties(sitename, site_rec)
           '''
           #Default sites are water quality sites, so we will check the predicition and advisory data and add to our response.
           if site_type == 'Water Quality':
@@ -1493,7 +1498,6 @@ class SitesDataAPI(BaseAPI):
             property = self.get_beach_access_properties(site_rec.id)
             if property is not None:
               properties[site_type] = property
-          '''
           extents_json = None
           if len(site_rec.extents):
             properties['extents_geometry'] = []
@@ -1509,7 +1513,7 @@ class SitesDataAPI(BaseAPI):
             if 'site_observations' not in properties:
               properties['site_observations'] = {}
             properties['site_observations']['usgs_sites'] = usgs_properties
-
+        '''
           feature = geojson.Feature(id=site_rec.site_name,
                                     geometry=site_geometry,
                                     properties=properties)
@@ -1518,9 +1522,7 @@ class SitesDataAPI(BaseAPI):
         client_results = json.dumps(results)
         current_app.logger.debug("IP: %s SiteDataAPI processed %d features" % (request.remote_addr, len(features)))
       else:
-        sites = list(SITES_CONFIG.keys())
-
-        #results = build_json_error(400, "Site: %s is not a vaild site. Valid sites: %s" % (sitename,sites))
+        sites = self.get_project_areas()
         results = self.json_error_response(400, "Site: %s is not a valid site. Valid sites: %s" % (sitename,sites))
         client_results = json.dumps(results)
 

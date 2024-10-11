@@ -71,7 +71,8 @@ def build_flask_admin(app):
     beach_ambassador_sites, \
     webcoos_sites, \
     usgs_sites_view, \
-    data_timeouts_view
+    data_timeouts_view, \
+    shellcast_sites_view
 
   from .admin_models import User, Role
   from .wq_models import Project_Area, \
@@ -89,7 +90,8 @@ def build_flask_admin(app):
     BeachAmbassador, \
     WebCoos, \
     usgs_sites, \
-    DataTimeouts
+    DataTimeouts,\
+    ShellCast
 
   login_manager.init_app(app)
   # Create admin
@@ -118,6 +120,7 @@ def build_flask_admin(app):
   admin.add_view(beach_ambassador_sites(BeachAmbassador, db.session, name="Beach Ambassador Sites"))
   admin.add_view(webcoos_sites(WebCoos, db.session, name="webcoos Sites"))
   admin.add_view(usgs_sites_view(usgs_sites, db.session, name="USGS Sites"))
+  admin.add_view(shellcast_sites_view(ShellCast, db.session, name="ShellCast Sites"))
 
 
   admin.add_view(popup_site_view(Sample_Site, db.session, name="Popup Site", endpoint="popup_site_view"))
