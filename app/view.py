@@ -788,7 +788,7 @@ class sample_site_view(base_view):
   """
   View for the Sample_Site table.
   """
-  column_list = ['project_site', 'site_name', 'site_type', 'latitude', 'longitude', 'description', 'epa_id', 'city', 'county', 'post_code', 'state_abbreviation', 'issues_advisories', 'has_current_advisory', 'advisory_text', 'boundaries', 'temporary_site', 'site_data', 'row_entry_date', 'row_update_date']
+  column_list = ['id', 'project_site', 'site_name', 'site_type', 'latitude', 'longitude', 'description', 'epa_id', 'city', 'county', 'post_code', 'state_abbreviation', 'issues_advisories', 'has_current_advisory', 'advisory_text', 'boundaries', 'temporary_site', 'site_data', 'row_entry_date', 'row_update_date']
   form_columns = ['project_site', 'site_name', 'site_type', 'latitude', 'longitude', 'description', 'epa_id', 'city', 'county', 'post_code', 'state_abbreviation', 'site_data','issues_advisories', 'has_current_advisory', 'advisory_text', 'boundaries', 'temporary_site']
   column_filters = ['project_site', 'site_type', 'city']
   def on_model_change(self, form, model, is_created):
@@ -801,7 +801,7 @@ class sample_site_view(base_view):
     :return:
     """
     start_time = time.time()
-    current_app.logger.debug('IP: %s User: %s popup_site_view on_model_change started.' % (request.remote_addr, current_user.login))
+    current_app.logger.debug('IP: %s User: %s sample_site_view on_model_change started.' % (request.remote_addr, current_user.login))
 
     if is_created:
       entry_time = datetime.utcnow()
@@ -820,7 +820,7 @@ class sample_site_view(base_view):
     """
     base_view.on_model_change(self, form, model, is_created)
 
-    current_app.logger.debug('IP: %s User: %s popup_site_view on_model_change finished in %f seconds.' % (request.remote_addr, current_user.login, time.time() - start_time))
+    current_app.logger.debug('IP: %s User: %s sample_site_view on_model_change finished in %f seconds.' % (request.remote_addr, current_user.login, time.time() - start_time))
 
 class site_type_view(base_view):
   column_list = ['name', 'row_entry_date', 'row_update_date']
