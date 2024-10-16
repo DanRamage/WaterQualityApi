@@ -395,23 +395,23 @@ class DataTimeouts(db.Model):
 
 
 class GeneralProgramPopup(db.Model):
-    __table_name__ = 'general_program_popup'
+  __table_name__ = 'general_program_popup'
 
-    id = db.Column(db.Integer, primary_key=True)
-    row_entry_date = db.Column(db.String(32))
-    row_update_date = db.Column(db.String(32))
+  id = db.Column(db.Integer, primary_key=True)
+  row_entry_date = db.Column(db.String(32))
+  row_update_date = db.Column(db.String(32))
 
-    header_title = db.Column(db.String(32))
-    icon = db.Column(db.String(32))
-    site_field = db.Column(db.String(32))
-    site_name = db.Column(db.String(32))
-    link_field = db.Column(db.String(64))
-    url = db.Column(db.String(2048))
-    description = db.Column(db.Text)
+  header_title = db.Column(db.String(32))
+  icon = db.Column(db.String(32))
+  site_field = db.Column(db.String(32))
+  site_id = db.Column(db.String(32))
+  link_field = db.Column(db.String(64))
+  site_url = db.Column(db.String(2048))
+  description = db.Column(db.Text)
 
-    # Relations to the sample site that uses this site.
-    sample_site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id), index=True)
-    sample_site_name = db.relationship('Sample_Site', backref='general_program_popup', foreign_keys=[sample_site_id])
+  # Relations to the sample site that uses this site.
+  sample_site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id), index=True)
+  sample_site_name = db.relationship('Sample_Site', backref='general_program_popup', foreign_keys=[sample_site_id])
 
-    project_site_id = db.Column('project_site_id', db.Integer, db.ForeignKey('project_area.id'))
-    project_site = db.relationship('Project_Area', backref='general_program_popup')
+  project_site_id = db.Column('project_site_id', db.Integer, db.ForeignKey('project_area.id'))
+  project_site = db.relationship('Project_Area', backref='general_program_popup')

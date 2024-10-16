@@ -861,6 +861,11 @@ class shellcast_sites_view(base_view):
     form_columns = ['site_id', 'sample_site_name', 'site_url', 'description', 'wkt_extent', 'row_entry_date', 'row_update_date']
     column_filters = ['site_id', 'sample_site_name', 'site_url', 'row_entry_date', 'row_update_date']
 
+class general_popup_sites_view(base_view):
+  column_list = ['id', 'row_entry_date', 'row_update_date', 'header_title', 'icon', 'site_field', 'site_name',
+                 'link_field', 'url', 'description']
+  form_columns = ['row_entry_date', 'row_update_date', 'header_title', 'icon', 'site_field', 'site_name',
+                 'link_field', 'url', 'description']
 
 class wktTextField(fields.TextAreaField):
   def process_data(self, value):

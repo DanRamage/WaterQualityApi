@@ -420,9 +420,9 @@ class GeneralProgramPopup(db.Model):
   header_title = db.Column(db.String(32))
   icon = db.Column(db.String(32))
   site_field = db.Column(db.String(32))
-  site_name = db.Column(db.String(32))
+  site_id = db.Column(db.String(32))
   link_field = db.Column(db.String(64))
-  url = db.Column(db.String(2048))
+  site_url = db.Column(db.String(2048))
   description = db.Column(db.Text)
 
   # Relations to the sample site that uses this site.
