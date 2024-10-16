@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+import os
 
 DATABASE_FILE = 'wq_db.sqlite'
 SQLALCHEMY_DATABASE_URI = 'sqlite:///' + DATABASE_FILE
@@ -8,9 +9,14 @@ SQLALCHEMY_ECHO = False
 
 app = Flask(__name__)
 # Create in-memory database
-app.config['DATABASE_FILE'] = DATABASE_FILE
+app.config['DATABASE_FILE'] = os.path.join(app.root_path, DATABASE_FILE)
+SQLALCHEMY_DATABASE_URI = 'sqlite:///' + app.config['DATABASE_FILE']
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 app.config['SQLALCHEMY_ECHO'] = SQLALCHEMY_ECHO
+
+#app.config['DATABASE_FILE'] = DATABASE_FILE
+#app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+#app.config['SQLALCHEMY_ECHO'] = SQLALCHEMY_ECHO
 
 db = SQLAlchemy(app)
 
@@ -403,3 +409,25 @@ class User(db.Model):
     return self.username
 #if __name__ == '__main__':
 #  manager.run()
+
+class GeneralProgramPopup(db.Model):
+  __table_name__ = 'general_program_popup'
+
+  id = db.Column(db.Integer, primary_key=True)
+  row_entry_date = db.Column(db.String(32))
+  row_update_date = db.Column(db.String(32))
+
+  header_title = db.Column(db.String(32))
+  icon = db.Column(db.String(32))
+  site_field = db.Column(db.String(32))
+  site_name = db.Column(db.String(32))
+  link_field = db.Column(db.String(64))
+  url = db.Column(db.String(2048))
+  description = db.Column(db.Text)
+
+  # Relations to the sample site that uses this site.
+  sample_site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id), index=True)
+  sample_site_name = db.relationship('Sample_Site', backref='general_program_popup', foreign_keys=[sample_site_id])
+
+  project_site_id = db.Column('project_site_id', db.Integer, db.ForeignKey('project_area.id'))
+  project_site = db.relationship('Project_Area', backref='general_program_popup')
