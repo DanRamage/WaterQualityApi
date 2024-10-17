@@ -428,6 +428,3 @@ class GeneralProgramPopup(db.Model):
   # Relations to the sample site that uses this site.
   sample_site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id), index=True)
   sample_site_name = db.relationship('Sample_Site', backref='general_program_popup', foreign_keys=[sample_site_id])
-
-  project_site_id = db.Column('project_site_id', db.Integer, db.ForeignKey('project_area.id'))
-  project_site = db.relationship('Project_Area', backref='general_program_popup')
