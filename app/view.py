@@ -863,9 +863,9 @@ class shellcast_sites_view(base_view):
     column_filters = ['site_id', 'sample_site_name', 'site_url', 'row_entry_date', 'row_update_date']
 
 class general_popup_sites_view(base_view):
-  column_list = ['id', 'sample_site_name',  'header_title', 'icon', 'site_field', 'site_id',
+  column_list = ['id', 'sample_site_name',  'map_icon', 'header_title', 'icon', 'site_field', 'site_id',
                  'link_field', 'site_url', 'description','row_entry_date', 'row_update_date']
-  form_columns = [ 'sample_site_name', 'header_title', 'icon', 'site_field', 'site_id',
+  form_columns = [ 'sample_site_name', 'map_icon', 'header_title', 'icon', 'site_field', 'site_id',
                  'link_field', 'site_url', 'description', 'row_entry_date', 'row_update_date']
 
   column_filters = ['site_id', 'sample_site_name', 'site_id', 'site_url', 'row_entry_date', 'row_update_date']

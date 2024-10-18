@@ -417,6 +417,7 @@ class GeneralProgramPopup(db.Model):
   row_entry_date = db.Column(db.String(32))
   row_update_date = db.Column(db.String(32))
 
+  map_icon = db.Column(db.String(32))
   header_title = db.Column(db.String(32))
   icon = db.Column(db.String(32))
   site_field = db.Column(db.String(32))
