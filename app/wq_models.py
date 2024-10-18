@@ -1,5 +1,3 @@
-import inspect
-
 from app import db
 
 
@@ -338,7 +336,7 @@ class BeachAccess(db.Model):
                 setattr(self, mapped_parameter, value)
 
     def to_json(self):
-        #These are the fields we want to output to json, if they are not None.
+        # These are the fields we want to output to json, if they are not None.
         fields_to_output = ["county",
                             "parking_spaces",
                             "parking_type",
@@ -377,38 +375,39 @@ class BeachAccess(db.Model):
                 beach_access[member] = getattr(self, member)
         return beach_access
 
+
 class DataTimeouts(db.Model):
-  __table_name__ = 'data_timeouts'
-  id = db.Column(db.Integer, primary_key=True)
-  row_entry_date = db.Column(db.String(32))
-  row_update_date = db.Column(db.String(32))
+    __table_name__ = 'data_timeouts'
+    id = db.Column(db.Integer, primary_key=True)
+    row_entry_date = db.Column(db.String(32))
+    row_update_date = db.Column(db.String(32))
 
-  name = db.Column(db.String(32))
-  hours_valid = db.Column(db.Integer)
+    name = db.Column(db.String(32))
+    hours_valid = db.Column(db.Integer)
 
-  site_type_id = db.Column(db.Integer, db.ForeignKey(Site_Type.id))
-  site_type = db.relationship('Site_Type', backref='data_timeouts', foreign_keys=[site_type_id])
+    site_type_id = db.Column(db.Integer, db.ForeignKey(Site_Type.id))
+    site_type = db.relationship('Site_Type', backref='data_timeouts', foreign_keys=[site_type_id])
 
-  project_site_id = db.Column('project_site_id', db.Integer, db.ForeignKey('project_area.id'))
-  project_site = db.relationship('Project_Area', backref='data_timeouts')
-
+    project_site_id = db.Column('project_site_id', db.Integer, db.ForeignKey('project_area.id'))
+    project_site = db.relationship('Project_Area', backref='data_timeouts')
 
 
 class GeneralProgramPopup(db.Model):
-  __table_name__ = 'general_program_popup'
+    __table_name__ = 'general_program_popup'
 
-  id = db.Column(db.Integer, primary_key=True)
-  row_entry_date = db.Column(db.String(32))
-  row_update_date = db.Column(db.String(32))
+    id = db.Column(db.Integer, primary_key=True)
+    row_entry_date = db.Column(db.String(32))
+    row_update_date = db.Column(db.String(32))
 
-  header_title = db.Column(db.String(32))
-  icon = db.Column(db.String(32))
-  site_field = db.Column(db.String(32))
-  site_id = db.Column(db.String(32))
-  link_field = db.Column(db.String(64))
-  site_url = db.Column(db.String(2048))
-  description = db.Column(db.Text)
+    header_title = db.Column(db.String(32))
+    icon = db.Column(db.String(32))
+    site_field = db.Column(db.String(32))
+    site_id = db.Column(db.String(32))
+    link_field = db.Column(db.String(64))
+    site_url = db.Column(db.String(2048))
+    description = db.Column(db.Text)
 
-  # Relations to the sample site that uses this site.
-  sample_site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id), index=True)
-  sample_site_name = db.relationship('Sample_Site', backref='general_program_popup', foreign_keys=[sample_site_id])
+    # Relations to the sample site that uses this site.
+    sample_site_id = db.Column(db.Integer, db.ForeignKey(Sample_Site.id), index=True)
+    sample_site_name = db.relationship('Sample_Site', backref='general_program_popup', foreign_keys=[sample_site_id])
+

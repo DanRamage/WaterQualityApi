@@ -18,6 +18,7 @@ import dateparser
 from wtforms import form, fields, validators
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import exc
+from sqlalchemy.ext.declarative import DeclarativeMeta
 from shapely.wkb import loads as wkb_loads
 from shapely.wkt import loads as wkt_loads
 from shapely import from_wkt, to_geojson, get_coordinates
@@ -30,8 +31,8 @@ from .admin_models import User
 from .wq_models import Project_Area, \
   Site_Message, \
   Advisory_Limits, \
-  Sample_Site,\
-  Sample_Site_Data,\
+  Sample_Site, \
+  Sample_Site_Data, \
   Site_Type, \
   Collection_Program_Info, \
   Collection_Program_Info_Mapper, \
@@ -40,7 +41,7 @@ from .wq_models import Project_Area, \
   WebCoos, \
   usgs_sites, \
   ShellCast, \
-  BeachAccess
+  BeachAccess, GeneralProgramPopup
 
 
 def locate_element(list, filter):
@@ -1278,6 +1279,19 @@ class SitesDataAPI(BaseAPI):
     except Exception as e:
       current_app.logger.exception(e)
     return None
+
+  def get_general_popup_properties(self, siteid):
+    exclude_columns = ['id', 'row_entry_date', 'row_update_date', 'sample_site_id']
+    try:
+      general_popup_rec = db.session.query(GeneralProgramPopup)\
+        .filter(GeneralProgramPopup.sample_site_id == siteid) \
+        .one()
+      properies = to_json(general_popup_rec, exclude_columns)
+      return properies
+    except Exception as e:
+      current_app.logger.exception(e)
+    return None
+
   def is_valid_project_area(self, project_area_name):
     try:
       project_area_rec = db.session.query(Project_Area)\
@@ -1404,6 +1418,11 @@ class SitesDataAPI(BaseAPI):
         #Now replace the data with the latest record, getting rid of the rest.
         latest_record['data'] = [latest_data]
         properties[site_type] = {'timeseries': latest_record}
+
+    elif site_type == "General Popup Site":
+      property = self.get_general_popup_properties(site_rec.id)
+      if property is not None:
+        properties[site_type] = property
 
     return properties, site_geometry
 
@@ -2204,3 +2223,20 @@ class NormalizedSiteData:
 
   def load_data_from_file(self, sitename: str, site_rec: Sample_Site, start_date: datetime, end_date: datetime):
     return self.get_site_data(sitename, site_rec, start_date, end_date)
+
+
+
+# Custom JSON encoder for SQLAlchemy models
+class AlchemyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj.__class__, DeclarativeMeta):
+            return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
+        return super().default(obj)
+
+def to_json(db_model, exclude_columns=None):
+  if exclude_columns is None:
+    exclude_columns = []
+
+  data = json.loads(json.dumps(db_model, cls=AlchemyEncoder))
+  return {k: v for k, v in data.items() if k not in exclude_columns}
+
