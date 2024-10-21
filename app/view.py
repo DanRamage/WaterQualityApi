@@ -1336,6 +1336,8 @@ class SitesDataAPI(BaseAPI):
     site_geometry = geojson.Point((site_rec.longitude, site_rec.latitude))
 
     if site_type == 'Water Quality':
+      prediction_data = None
+      advisory_data = None
       if location_name in SITES_CONFIG:
         prediction_data = self.load_data_file(SITES_CONFIG[location_name]['prediction_file'])
         advisory_data = self.load_data_file(SITES_CONFIG[location_name]['advisory_file'])
