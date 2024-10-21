@@ -41,7 +41,9 @@ from .wq_models import Project_Area, \
   WebCoos, \
   usgs_sites, \
   ShellCast, \
-  BeachAccess, GeneralProgramPopup
+  BeachAccess, \
+  GeneralProgramPopup,\
+  DataTimeouts
 
 
 def locate_element(list, filter):
@@ -1271,8 +1273,8 @@ class SitesDataAPI(BaseAPI):
 
   def get_data_expirations(self, sitename):
     try:
-      timeouts = db.session.query(BeachAccess)\
-        .join(Project_Area, Project_Area.id == Advisory_Limits.site_id) \
+      timeouts = db.session.query(DataTimeouts)\
+        .join(Project_Area, Project_Area.id == DataTimeouts.project_site_id) \
         .filter(Project_Area.area_name == sitename) \
         .all()
       return timeouts
