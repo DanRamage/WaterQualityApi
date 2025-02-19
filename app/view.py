@@ -1428,6 +1428,22 @@ class SitesDataAPI(BaseAPI):
       if property is not None:
         properties[site_type] = property
 
+    extents_json = None
+    if len(site_rec.extents):
+      properties['extents_geometry'] = []
+      for extent in site_rec.extents:
+        extent_feature = geojson.Feature(id=f"{extent.extent_name}_{extent.id}_extent",
+                                         geometry=from_wkt(extent.wkt_extent),
+                                         properties={'extent_name': extent.extent_name})
+        properties['extents_geometry'].append(extent_feature)
+
+    # Check to see if the site will be adding any USGS obs onto the station page.
+    usgs_properties = self.get_usgs_sites(site_rec.id)
+    if usgs_properties is not None:
+      if 'site_observations' not in properties:
+        properties['site_observations'] = {}
+      properties['site_observations']['usgs_sites'] = usgs_properties
+
     return properties, site_geometry
 
   def get(self, sitename):
