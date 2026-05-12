@@ -343,7 +343,7 @@ def reverse_geocode_sites(params):
 
 
 @app.cli.command('get_bcrs_sites')
-@click.option('--params', nargs=2)
+@click.option('--params', nargs=3)
 def get_bcrs_sites(params):
   '''
   follybeach
@@ -354,6 +354,7 @@ def get_bcrs_sites(params):
   start_time = time.time()
   location = params[0]
   bbox = params[1]
+  dry_run = params[2] == 'True'
 
   ll, ur = bbox.split(',')
   ll = ll.split(' ')
@@ -411,7 +412,7 @@ def get_bcrs_sites(params):
             except Exception as e:
               current_app.logger.debug("Site: %s is not in database." % (beach['name']))
               add_site = True
-            if add_site:
+            if add_site and not dry_run:
               try:
                 new_site = Sample_Site(row_entry_date=row_entry_date,
                                        site_name=beach['name'],
