@@ -21,7 +21,8 @@ else:
   DATA_DIRECTORY='/var/nfs/wq_feeds'
 
 VALID_UPDATE_ADDRESSES = ['127.0.0.1', '129.252.139.113', '129.252.139.170']
-
+#For now until we have a database server housing
+NEXRAD_DATA_FILES_DIRECTORY = os.path.join(DATA_DIRECTORY, 'processed_nexrad')
 if not PYCHARM_DEBUG:
   SITES_CONFIG = {
     'myrtlebeach':

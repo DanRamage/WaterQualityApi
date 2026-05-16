@@ -23,8 +23,8 @@ from shapely.wkb import loads as wkb_loads
 from shapely.wkt import loads as wkt_loads
 from shapely import from_wkt, to_geojson, get_coordinates
 from json_timeseries import TsRecord, TimeSeries, JtsDocument
-
-from config import VALID_UPDATE_ADDRESSES, SITES_CONFIG, SITE_TYPE_DATA_VALID_TIMEOUTS
+from pathlib import Path
+from config import SITES_CONFIG, SITE_TYPE_DATA_VALID_TIMEOUTS, NEXRAD_DATA_FILES_DIRECTORY
 
 from app import db
 from .admin_models import User
@@ -43,7 +43,8 @@ from .wq_models import Project_Area, \
   ShellCast, \
   BeachAccess, \
   GeneralProgramPopup,\
-  DataTimeouts
+  DataTimeouts,\
+  Boundary
 
 
 def locate_element(list, filter):
@@ -1009,6 +1010,10 @@ class SitesDataAPI(BaseAPI):
                 'hours_data_valid': data_timeout}
           except Exception as e:
             current_app.logger.exception(e)
+      properties[site_type]['boundaries'] = []
+      if len(site_rec.boundaries):
+        for boundary in site_rec.boundaries:
+          properties[site_type]['boundaries'].append({'name': boundary.boundary_name})
 
     elif site_type == 'Shellfish':
       # Does site have shellfish data?
@@ -1579,6 +1584,94 @@ class SiteDataAPI(MethodView):
 
     current_app.logger.debug('SiteBacteriaDataAPI get for site: %s finished in %f seconds' % (sitename, time.time() - start_time))
     return (results, ret_code, {'Content-Type': 'application/json'})
+
+
+class ObservationDataAPI(MethodView):
+  def get_nexrad_data(self, geometry, start_date_obj, end_date_obj, units):
+    jts_document = JtsDocument()
+
+    if geometry is not None:
+      point = wkt_loads(f'POINT({geometry[0]} {geometry[1]})')
+      boundary_select = db.session.query(Boundary)
+      point_series = gpd.GeoSeries([point])
+      geo_of_interest_df = gpd.GeoDataFrame({'geometry': point_series})
+      with db.engine.begin() as conn:
+        # We give pandas the sql statement to make the query and build the dataframe from the results.
+        df = pd.read_sql(boundary_select.statement, conn)
+      # Create the geopandas dataframe using the points_from_xy to build the geometry column.
+      geo_df = gpd.GeoDataFrame(df,
+                                geometry=gpd.GeoSeries.from_wkb(df.wkb_boundary))
+      # Taking the passed in bounding box, we do an intersection to get the stations we are interested in.
+      matching_boundaries = gpd.overlay(geo_df, geo_of_interest_df, how="intersection", keep_geom_type=False)
+      if len(matching_boundaries):
+        data_ts = TimeSeries(identifier=matching_boundaries.iloc[0]['boundary_name'],
+          name='nexrad_precipitation',
+          units='inches',
+          data_type='NUMBER')
+        jts_document.series.append(data_ts)
+        boundary_name = matching_boundaries.iloc[0]['boundary_name'].replace(' ', '_')
+        nexrad_processed_data_file = Path(NEXRAD_DATA_FILES_DIRECTORY, f"{boundary_name}.csv")
+        nexrad_df = pd.read_csv(nexrad_processed_data_file, parse_dates=['Start Time'])
+        nexrad_data = nexrad_df[
+          (nexrad_df["Start Time"] >= start_date_obj) &
+          (nexrad_df["Start Time"] < end_date_obj)
+        ]
+        for index, row in nexrad_data.iterrows():
+          start_time = row["Start Time"]
+          precip = float(row["Weighted Average"])
+          if units == 'imperial':
+            precip = precip / 25.4
+          data_ts.records.append(TsRecord(**{'timestamp': start_time,
+                                   'value':precip}))
+    return jts_document.toJSONString()
+
+
+  def get(self):
+    ret_code = 404
+    args = [(key,request.args[key]) for key in request.args]
+    current_app.logger.debug(f"IP: {request.remote_addr} ObservationDataAPI args: {args}")
+    utc_tz = pytz.utc
+    if 'start_date' in request.args:
+      start_date = dateparser.parse(request.args['start_date'])
+      start_date = pytz.utc.localize(start_date)
+    else:
+      start_date = datetime.now()
+    if 'end_date' in request.args:
+        end_date = dateparser.parse(request.args['end_date'])
+        end_date = pytz.utc.localize(end_date)
+    else:
+      end_date = None
+    if 'points' in request.args:
+      points = request.args['points']
+    else:
+      results = build_json_error(404, "Parameter: points not provided.")
+      return (results, ret_code, {'Content-Type': 'application/json'})
+    units = "imperial"
+    if 'units' in request.args:
+      units = request.args['units']
+
+    if 'observation_type' in request.args:
+      observation_type = request.args['observation_type']
+    else:
+      results = build_json_error(404, "Parameter: observation_type not provided.")
+      return (results, ret_code, {'Content-Type': 'application/json'})
+    if observation_type == 'nexrad':
+      x,y = points.split(',')
+      try:
+        geometry = [float(x),float(y)]
+        results = self.get_nexrad_data(geometry, start_date, end_date, units)
+        ret_code = 200
+      except ValueError as e:
+        results = build_json_error(404, "Points parameter invalid, must be in x,y format")
+        return (results, ret_code, {'Content-Type': 'application/json'})
+      except Exception as e:
+        current_app.logger.exception(e)
+        results = build_json_error(404, "An error occured while processing the geometry.")
+        return (results, ret_code, {'Content-Type': 'application/json'})
+
+    return (results, ret_code, {'Content-Type': 'application/json'})
+
+
 class CollectionProgramInfoAPI(BaseAPI):
   def build_json(self, recs):
     result = {
